@@ -80,7 +80,7 @@ class UserViewsets(viewsets.ViewSet):
             )
 
         try:
-            user = authenticate(username=email, password=password)
+            user = authenticate(request,username=email, password=password)
             if user is None:
                 return Response(
                     {'error': 'Noto\'g\'ri email yoki parol'},

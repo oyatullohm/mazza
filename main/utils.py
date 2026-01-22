@@ -9,7 +9,6 @@ def random_number():
             return code
 VERIFY_TTL = 120  # 2 minut
 
-
 def set_verify_code(code, email):
     cache.set(
         f"verify:{code}",
