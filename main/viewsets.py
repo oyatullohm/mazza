@@ -69,6 +69,8 @@ class UserViewsets(viewsets.ViewSet):
 
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def login(self, request):
+        return Response(
+                {'error': ' email yuborilishi shart'})
         email = request.data.get("email")
         password = request.data.get("password")
         firebase_token = request.data.get("firebase_token")
