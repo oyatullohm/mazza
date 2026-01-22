@@ -120,7 +120,6 @@ class UserViewsets(viewsets.ViewSet):
             return Response({'error': 'Kod eskirgan yoki noto‘g‘ri'}, status=400)
 
         email = data['email']
-
         user = CustomUser.objects.get(email=email)
 
         user.is_confirmation = True
