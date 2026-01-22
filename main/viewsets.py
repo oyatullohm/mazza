@@ -166,7 +166,8 @@ class UserViewsets(viewsets.ViewSet):
         except:
             return Response({'error': 'Invalid refresh token'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    def update(self, request, pk=None):
+    @action(methods=['post'],detail=False, permission_classes=[IsAuthenticated])
+    def update(self, request):
         user = request.user
         data = request.data
         phone = data.get('phone')
