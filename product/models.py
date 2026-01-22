@@ -71,7 +71,7 @@ class PropertyItem(models.Model):
     is_active = models.BooleanField(default=True)
 
  
-class Order(models.Model):
+class Booking(models.Model):
     TYPE_CHOICES = [
         ('Rad etilgan', 'Rad etilgan'),
         ('Kutilmoqda', 'Kutilmoqda'),
