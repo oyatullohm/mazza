@@ -67,54 +67,45 @@ class UserViewsets(viewsets.ViewSet):
         }, status=201)
     
 
+
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
-    def login(self, request):
-        return Response(
-                {'error': ' email yuborilishi shart'})
+    def login_user(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
         firebase_token = request.data.get("firebase_token")
 
-        if not email:
+        if not email or not password:
             return Response(
-                {'error': ' email yuborilishi shart'},
+                {'error': 'email va password yuborilishi shart'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        try:
-            user = CustomUser.objects.get(username=email)
-
-            if user is None:
-                return Response(
-                    {'error': 'Noto\'g\'ri email yoki parol'},
-                    status=status.HTTP_401_UNAUTHORIZED
-                )
-        except CustomUser.DoesNotExist:
+        user = CustomUser.objects.filter(email=email).first()
+        if not user:
             return Response(
                 {'error': 'Foydalanuvchi topilmadi'},
                 status=status.HTTP_404_NOT_FOUND
             )
+
         if not user.check_password(password):
             return Response(
                 {'error': 'Parol noto‘g‘ri'},
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-
         code = random_number()
         user.confirmation_code = code
         user.firebase_token = firebase_token
         user.save()
-        set_verify_code(code, email)
 
-        # bu yerda sms yoki email yuborasiz
+        set_verify_code(code, email)
 
         return Response({
             'success': True,
-            'message': f'Tasdiqlash kodi {user.phone}yuborildi',
-            
-            'code':code
-        }, status=status.HTTP_201_CREATED)
+            'message': 'Tasdiqlash kodi yuborildi',
+            'code': code
+        }, status=status.HTTP_200_OK)
+
     
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def verify(self, request):
