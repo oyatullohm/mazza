@@ -80,7 +80,8 @@ class UserViewsets(viewsets.ViewSet):
             )
 
         try:
-            user = authenticate(request,username=email, password=password)
+            user = CustomUser.objects.get(username=email)
+
             if user is None:
                 return Response(
                     {'error': 'Noto\'g\'ri email yoki parol'},
@@ -91,6 +92,12 @@ class UserViewsets(viewsets.ViewSet):
                 {'error': 'Foydalanuvchi topilmadi'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        if not user.check_password(password):
+            return Response(
+                {'error': 'Parol noto‘g‘ri'},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
 
         code = random_number()
         user.confirmation_code = code
