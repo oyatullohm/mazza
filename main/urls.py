@@ -15,7 +15,6 @@ router = DefaultRouter()
 router.register('users',UserViewsets,basename='users')
 
 urlpatterns = [
-    path('login/email/', email_login),
-    path('test/', test),
+   
 ]
 urlpatterns += router.urls
