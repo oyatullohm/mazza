@@ -28,7 +28,7 @@ class UserViewsets(viewsets.ViewSet):
         return Response([{'key': i[0], 'value': i[1]} for i in CustomUser.USER_CHOISE])
     
     @action(methods=['post'],detail=False, permission_classes=[AllowAny])
-    def email_register_login(self,request):
+    def email_login(self,request):
         data = request.data
         email = data.get('email')
         firebase_token = data.get('firebase_token')
