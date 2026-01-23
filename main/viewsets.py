@@ -166,109 +166,57 @@ class UserViewsets(viewsets.ViewSet):
             return Response({'error': 'Invalid refresh token'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-        user = request.user
-        data = request.data
-        # phone = data.get('phone')
-        email = data.get('email')
-        image = data.get('image')
-        name = data.get('name')
-        
-        if name:
-            user.first_name = name
-        if email:
-            user.email = email
-            user.username = email
-        if image:
-            user.image = image
-        try:
-            user.save()
-        except Exception as e:
-            return Response({'error': str(e)}, status=400)
-
-        return Response({
-            'id': user.id,
-            'name': user.first_name,
-            'phone': user.phone,
-            'email': user.email,
-            'role': user.role,
-            'image': user.image.url if user.image else None
-        }, status=200)
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def forgotten_password(self, request):
         email = request.data.get('email')
         phone = request.data.get('phone')
 
         if not email and not phone:
-            return Response(
-                {'error': 'email yoki phone yuborilishi shart'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({'error': 'email yoki phone yuborilishi shart'}, status=400)
 
-        user = None
-        if email:
-            user = CustomUser.objects.filter(email=email).first()
-        elif phone:
-            user = CustomUser.objects.filter(phone=phone).first()
-
-        if not user:
-            return Response(
-                {'error': 'Foydalanuvchi topilmadi'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        try:
+            try:
+                user = CustomUser.objects.get(username=email)
+            except CustomUser.DoesNotExist:
+                user = CustomUser.objects.get(phone=phone)
+        except CustomUser.DoesNotExist:
+            return Response({'error': 'Foydalanuvchi topilmadi'}, status=404)
 
         code = random_number()
+        user.confirmation_code = code
+        user.save()
 
-        # ❌ DB ga yozma
-        # user.confirmation_code = code
-        # user.save()
+        # bu yerda sms yoki email yuborasiz
 
-        # ✅ Redis ga yoz
-        key = email or phone
-        set_verify_code(code, key)
-
-        # bu yerda sms yoki email yuborasan
-
+        set_verify_code(code, email)
         return Response({
             'success': True,
-            'message': 'Tasdiqlash kodi yuborildi',
+            'message': f'Tasdiqlash kodi {user.phone} yuborildi',
             'code': code
-        }, status=status.HTTP_200_OK)
-
-        
+        }, status=status.HTTP_201_CREATED)
+    
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def reset_password(self, request):
         code = request.data.get('code')
-        new_password = request.data.get('new_password')
-
-        if not code or not new_password:
-            return Response(
-                {'error': 'code va new_password shart'},
-                status=400
-            )
-
         data = get_verify_email_by_code(code)
         if not data:
             return Response({'error': 'Kod eskirgan yoki noto‘g‘ri'}, status=400)
 
-        key = data['key']  # email yoki phone
+        email = data['email']
+        new_password = request.data.get('new_password')
 
-        user = (
-            CustomUser.objects.filter(email=key).first() or
-            CustomUser.objects.filter(phone=key).first()
-        )
-
-        if not user:
-            return Response({'error': 'User topilmadi'}, status=404)
+        
+        try:
+            user = CustomUser.objects.get(username=email, confirmation_code=code)
+        except CustomUser.DoesNotExist:
+            return Response({'error': 'Noto\'g\'ri kod yoki email'}, status=404)
 
         user.set_password(new_password)
+        user.confirmation_code = ''
         user.save()
 
-        delete_verify_code(code)
-
-        return Response({'success': True})
-
-        
-        
+        return Response({'success': True, 'message': 'Parol muvaffaqiyatli yangilandi'}, status=200)
+    
     def update(self, request, pk=None):
         user = request.user
         data = request.data
