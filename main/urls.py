@@ -1,8 +1,10 @@
 
+
 from django.contrib import admin
 from django.urls import path
 from .views import (
-    email_login
+    email_login,
+    test
 )
 from .viewsets import (
     UserViewsets
@@ -13,6 +15,7 @@ router = DefaultRouter()
 router.register('users',UserViewsets,basename='users')
 
 urlpatterns = [
-    path('login/email/', email_login)
+    path('login/email/', email_login),
+    path('test/', test),
 ]
-urlpatterns+=router.urls
+urlpatterns += router.urls

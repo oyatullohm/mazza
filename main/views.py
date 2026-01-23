@@ -1,9 +1,16 @@
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import api_view
+from rest_framework.permissions import  AllowAny, IsAuthenticated 
+from rest_framework.decorators import api_view , permission_classes
 from rest_framework.response import Response
 from .models import CustomUser
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
+def test(request):
+    return Response({'message': 'Test endpoint is working.'}, status=200)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
 def email_login(request):
     return Response({'error': 'This endpoint has been moved to UserViewsets.email_login method.'}, status=400)
     # data = request.data
