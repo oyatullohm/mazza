@@ -236,61 +236,40 @@ class UserViewsets(viewsets.ViewSet):
         }, status=status.HTTP_200_OK)
 
         
-    
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def reset_password(self, request):
         code = request.data.get('code')
+        new_password = request.data.get('new_password')
+
+        if not code or not new_password:
+            return Response(
+                {'error': 'code va new_password shart'},
+                status=400
+            )
+
         data = get_verify_email_by_code(code)
         if not data:
             return Response({'error': 'Kod eskirgan yoki noto‘g‘ri'}, status=400)
 
-        email = data['email']
-        new_password = request.data.get('new_password')
+        key = data['key']  # email yoki phone
 
-        
-        try:
-            user = CustomUser.objects.get(username=email, confirmation_code=code)
-        except CustomUser.DoesNotExist:
-            return Response({'error': 'Noto\'g\'ri kod yoki email'}, status=404)
+        user = (
+            CustomUser.objects.filter(email=key).first() or
+            CustomUser.objects.filter(phone=key).first()
+        )
+
+        if not user:
+            return Response({'error': 'User topilmadi'}, status=404)
 
         user.set_password(new_password)
-        user.confirmation_code = ''
         user.save()
 
-        return Response({'success': True, 'message': 'Parol muvaffaqiyatli yangilandi'}, status=200)
-    
-    def update(self, request, pk=None):
-        user = request.user
-        data = request.data
+        delete_verify_code(code)
 
-        phone = data.get('phone')
-        email = data.get('email')
-        image = data.get('image')
-        name = data.get('name')
+        return Response({'success': True})
 
-        if name:
-            user.first_name = name
-        if phone:
-            user.phone = phone
-        if email:
-            user.email = email
-        if image:
-            user.image = image
-        try:
-            user.save()
-        except Exception as e:
-            return Response({'error': str(e)}, status=400)
-
-        return Response({
-            'id': user.id,
-            'name': user.first_name,
-            'phone': user.phone,
-            'email': user.email,
-            'role': user.role,
-            'image': user.image.url if user.image else None
-        }, status=200)
-
-    def destroy(self, request, pk=None):
+        
+    def destroy(self, request,):
         user = request.user
         user.image.delete(save=False)  # Rasmni o'chirish
         user.delete()
