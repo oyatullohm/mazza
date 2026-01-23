@@ -2,10 +2,7 @@
 
 from django.contrib import admin
 from django.urls import path
-from .views import (
-    email_login,
-    test
-)
+
 from .viewsets import (
     UserViewsets
 )

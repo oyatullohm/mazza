@@ -20,8 +20,8 @@ from .utils import *
 
 
 class UserViewsets(viewsets.ViewSet):
-    # serializer_class = RegisterSerializer
-    # queryset = CustomUser.objects.all()
+    serializer_class = RegisterSerializer
+    queryset = CustomUser.objects.all()
     
     @action(methods=['get'],detail=False, permission_classes=[AllowAny])
     def role(self, request):
