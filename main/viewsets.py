@@ -193,36 +193,48 @@ class UserViewsets(viewsets.ViewSet):
             'email': user.email,
             'role': user.role,
             'image': user.image.url if user.image else None
-        }, status=200)  
-    
+        }, status=200)
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def forgotten_password(self, request):
         email = request.data.get('email')
         phone = request.data.get('phone')
 
         if not email and not phone:
-            return Response({'error': 'email yoki phone yuborilishi shart'}, status=400)
+            return Response(
+                {'error': 'email yoki phone yuborilishi shart'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        try:
-            try:
-                user = CustomUser.objects.get(username=email)
-            except CustomUser.DoesNotExist:
-                user = CustomUser.objects.get(phone=phone)
-        except CustomUser.DoesNotExist:
-            return Response({'error': 'Foydalanuvchi topilmadi'}, status=404)
+        user = None
+        if email:
+            user = CustomUser.objects.filter(email=email).first()
+        elif phone:
+            user = CustomUser.objects.filter(phone=phone).first()
+
+        if not user:
+            return Response(
+                {'error': 'Foydalanuvchi topilmadi'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         code = random_number()
-        user.confirmation_code = code
-        user.save()
 
-        # bu yerda sms yoki email yuborasiz
+        # ❌ DB ga yozma
+        # user.confirmation_code = code
+        # user.save()
 
-        set_verify_code(code, email)
+        # ✅ Redis ga yoz
+        key = email or phone
+        set_verify_code(code, key)
+
+        # bu yerda sms yoki email yuborasan
+
         return Response({
             'success': True,
-            'message': f'Tasdiqlash kodi {user.phone} yuborildi',
-            'code': code
-        }, status=status.HTTP_201_CREATED)
+            'message': 'Tasdiqlash kodi yuborildi'
+        }, status=status.HTTP_200_OK)
+
+        
     
     @action(methods=['post'], detail=False, permission_classes=[AllowAny])
     def reset_password(self, request):
