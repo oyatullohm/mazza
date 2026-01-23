@@ -165,8 +165,7 @@ class UserViewsets(viewsets.ViewSet):
         except:
             return Response({'error': 'Invalid refresh token'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    @action(methods=['put'],detail=False, permission_classes=[IsAuthenticated])
-    def update(self, request):
+
         user = request.user
         data = request.data
         # phone = data.get('phone')
@@ -269,7 +268,39 @@ class UserViewsets(viewsets.ViewSet):
         return Response({'success': True})
 
         
-    def destroy(self, request,):
+        
+    def update(self, request, pk=None):
+        user = request.user
+        data = request.data
+
+        # phone = data.get('phone')
+        email = data.get('email')
+        image = data.get('image')
+        name = data.get('name')
+
+        if name:
+            user.first_name = name
+
+        if email:
+            user.email = email
+            user.username = email
+        if image:
+            user.image = image
+        try:
+            user.save()
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+
+        return Response({
+            'id': user.id,
+            'name': user.first_name,
+            'phone': user.phone,
+            'email': user.email,
+            'role': user.role,
+            'image': user.image.url if user.image else None
+        }, status=200)
+
+    def destroy(self, request, pk=None):
         user = request.user
         user.image.delete(save=False)  # Rasmni o'chirish
         user.delete()
