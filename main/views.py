@@ -11,14 +11,17 @@ def email_login(request):
     
     if not email:
         return Response({'error': ' email shart'}, status=400)
-    
-    user, created = CustomUser.objects.get_or_create(
-        email=email,
-        role='client',
-        username=email,
-        firebase_token=firebase_token,
-        
-    )
+    try:
+        user = CustomUser.objects.get(email=email)
+        print("Mavjud foydalanuvchi:", email)
+    except CustomUser.DoesNotExist:
+        user = CustomUser.objects.create_user(
+            email=email,
+            role='client',
+            username=email,
+            firebase_token=firebase_token,
+        )
+        print("Yangi foydalanuvchi yaratildi:", email)
     user.firebase_token = firebase_token
     refresh = RefreshToken.for_user(user)
 
