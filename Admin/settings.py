@@ -11,6 +11,7 @@ environ.Env.read_env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env.str('SECRET_KEY')
+print(SECRET_KEY)
 
 DEBUG = True
 
@@ -27,10 +28,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    
     'main',
     'product',
     
     'rest_framework',
+
     'rest_framework_simplejwt',
     # 'channels',
 ]
@@ -39,7 +42,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
-    ]  
+    ],   
 }
 
 from datetime import timedelta
@@ -93,7 +96,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                
             ],
         },
     },
