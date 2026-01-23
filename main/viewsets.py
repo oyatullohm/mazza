@@ -70,7 +70,11 @@ class UserViewsets(viewsets.ViewSet):
 
         if not phone and not email:
             return Response({'error': 'phone yoki email shart'}, status=400)
-
+        if CustomUser.objects.filter(phone=phone).exists():
+            return Response({'error': 'Bu telefon raqam allaqachon ro‘yxatdan o‘tgan'}, status=400)
+        if CustomUser.objects.filter(email=email).exists():
+            return Response({'error': 'Bu email allaqon ro‘yxatdan o‘tgan'}, status=400)
+        
         code = random_number()
 
         user = CustomUser.objects.create_user(
