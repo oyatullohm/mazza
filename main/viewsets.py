@@ -165,21 +165,20 @@ class UserViewsets(viewsets.ViewSet):
         except:
             return Response({'error': 'Invalid refresh token'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    @action(methods=['post'],detail=False, permission_classes=[IsAuthenticated])
+    @action(methods=['put'],detail=False, permission_classes=[IsAuthenticated])
     def update(self, request):
         user = request.user
         data = request.data
-        phone = data.get('phone')
+        # phone = data.get('phone')
         email = data.get('email')
         image = data.get('image')
         name = data.get('name')
         
         if name:
             user.first_name = name
-        if phone:
-            user.phone = phone
         if email:
             user.email = email
+            user.username = email
         if image:
             user.image = image
         try:
