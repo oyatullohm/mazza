@@ -231,7 +231,8 @@ class UserViewsets(viewsets.ViewSet):
 
         return Response({
             'success': True,
-            'message': 'Tasdiqlash kodi yuborildi'
+            'message': 'Tasdiqlash kodi yuborildi',
+            'code': code
         }, status=status.HTTP_200_OK)
 
         
