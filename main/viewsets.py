@@ -1,21 +1,19 @@
 
 from rest_framework.permissions import  AllowAny, IsAuthenticated 
-from rest_framework.decorators import permission_classes
 from rest_framework.pagination import PageNumberPagination
-from django.db.models import F , Prefetch, Count
+from rest_framework.decorators import permission_classes
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import F , Prefetch, Count, Q
+from django.contrib.auth import authenticate
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from urllib3 import request
-# from announcement.decorators import IsStaff
-from .serializers import *
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import viewsets
 from rest_framework import status
+from .serializers import *
 from .models import *
+from .utils import *
 import datetime
 import random
-from .utils import *
 
 
 
@@ -70,11 +68,11 @@ class UserViewsets(viewsets.ViewSet):
 
         if not phone and not email:
             return Response({'error': 'phone yoki email shart'}, status=400)
-        if CustomUser.objects.filter(phone=phone).exists():
-            return Response({'error': 'Bu telefon raqam allaqachon ro‘yxatdan o‘tgan'}, status=400)
-        if CustomUser.objects.filter(email=email).exists():
-            return Response({'error': 'Bu email allaqon ro‘yxatdan o‘tgan'}, status=400)
-        
+        if CustomUser.objects.filter(Q(phone=phone) | Q(email=email)).exists():
+            return Response(
+                {'error': 'Bu telefon raqam yoki email allaqachon ro‘yxatdan o‘tgan'},
+                status=400
+            )
         code = random_number()
 
         user = CustomUser.objects.create_user(
