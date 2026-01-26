@@ -44,10 +44,10 @@ class CategorySerializer(serializers.ModelSerializer):
         
 class PropertyItemSerializer(serializers.ModelSerializer):
     property = PropertySerializer(read_only=True)
-    image = ImagesSerializer(many=True, read_only=True)
+    images = ImagesSerializer(many=True, read_only=True)
     comfortable = ComfortableSerializer(many=True, read_only=True)
-    the_rule = TheRuleSerializer(many=True, read_only=True)
-    access_exit = AccessExitTimeSerializer(many=True, read_only=True)
+    rules = TheRuleSerializer(many=True, read_only=True)
+    access_times = AccessExitTimeSerializer(many=True, read_only=True)
 
     class Meta:
         model = PropertyItem
