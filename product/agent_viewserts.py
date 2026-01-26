@@ -168,7 +168,7 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
     def add_images(self, request, pk=None):
         property_item = self.get_object()
         images = request.FILES.getlist('images')
-        if images and len(images) + property_item.image.count() <= 5:
+        if images and len(images) + property_item.images.count() <= 5:
             for img in images:
                 img_instance = Images.objects.create(
                     image=img
