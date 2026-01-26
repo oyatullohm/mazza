@@ -2,6 +2,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework import viewsets
+from rest_framework import status
 from .permissions import IsStaff
 from .serializers import *
 from .models import *
@@ -10,21 +11,33 @@ from .models import *
 class CurrencyRateViewSet(viewsets.ModelViewSet):
     queryset = CurrencyRate.objects.all()
     serializer_class = CurrencyRateSerializer
-    
+
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=False)
+        rate = CurrencyRate.objects.last()
+        if not rate:
+            return Response({}, status=status.HTTP_204_NO_CONTENT)
+
+        serializer = self.get_serializer(rate)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        course = request.data['course']
-        if self.get_queryset():
-            serializer = self.get_serializer(self.get_queryset(), many=False)
-            return Response(serializer.data, status=200)
-        course = CurrencyRate.objects.create(rate=course)
-        serializer = self.get_serializer(course)
+        course = request.data.get('course')
+        if not course:
+            return Response(
+                {"error": "course majburiy"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        return Response(serializer.data, status=201)
+        rate, created = CurrencyRate.objects.update_or_create(
+            id=1,
+            defaults={"rate": course}
+        )
+
+        serializer = self.get_serializer(rate)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
 
     def update(self, request, *args, **kwargs):
         course_data = request.data['course']
