@@ -21,7 +21,7 @@ class CurrencyRateViewSet(viewsets.ModelViewSet):
         if self.get_queryset():
             serializer = self.get_serializer(self.get_queryset(), many=False)
             return Response(serializer.data, status=200)
-        course = Course.objects.create(**course)
+        course = CurrencyRate.objects.create(rate=course)
         serializer = self.get_serializer(course)
 
         return Response(serializer.data, status=201)
@@ -29,7 +29,7 @@ class CurrencyRateViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         course_data = request.data['course']
         course = self.get_queryset()
-        course.course = course_data
+        course.rate = course_data
         course.save()
         serializer = self.get_serializer(course)
         return Response(serializer.data, status=200)
