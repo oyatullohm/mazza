@@ -129,12 +129,12 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
         if access_exit:
             for access in access_exit:
                 date = AccessExitTime.objects.get(id=access)
-                property_item.access_exit.add(date)
+                property_item.access_times.add(date)
         if the_rule:
             for rule in the_rule:
                 the_rule_obj = The_rule.objects.get(id=rule)
-                property_item.the_rule.add(the_rule_obj)
-        
+                property_item.rules.add(the_rule_obj)
+
             
         return Response({"status": "success", "data": PropertyItemSerializer(property_item).data}, status=201)
     
