@@ -8,8 +8,8 @@ from .models import *
 
 
 class CurrencyRateViewSet(viewsets.ModelViewSet):
-    queryset = CurrencyRate.objects.last()
-    serializer_class = CurrencyRate
+    queryset = CurrencyRate.objects.all()
+    serializer_class = CurrencyRateSerializer
     
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
