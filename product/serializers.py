@@ -59,8 +59,8 @@ class PropertyItemSerializer(serializers.ModelSerializer):
             'is_active',
             'info',
             'property',
-            'image',
+            'images',
             'comfortable',
-            'the_rule',
-            'access_exit',
+            'rules',
+            'access_times',
         )
