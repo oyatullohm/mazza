@@ -173,7 +173,7 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
                 img_instance = Images.objects.create(
                     image=img
                 )
-                property_item.image.add(img_instance)
+                property_item.images.add(img_instance)
             return Response({"status": "success", "data": PropertyItemSerializer(property_item).data}, status=200)
         else:
             return Response({"status": "error", "message": "Maximum 5 images are allowed."}, status=400)
