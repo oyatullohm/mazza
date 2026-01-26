@@ -38,14 +38,6 @@ class CurrencyRateViewSet(viewsets.ModelViewSet):
             serializer.data,
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
         )
-
-    def update(self, request, *args, **kwargs):
-        course_data = request.data['course']
-        course = self.get_queryset()
-        course.rate = course_data
-        course.save()
-        serializer = self.get_serializer(course)
-        return Response(serializer.data, status=200)
     
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
@@ -95,6 +87,13 @@ class TheRuleViewSet(viewsets.ModelViewSet):
 class ComfortableViewSet(viewsets.ModelViewSet):
     queryset = Comfortable.objects.all().select_related('category')
     serializer_class = ComfortableSerializer
+
+    def get_queryset(self):
+        category = self.request.query_params.get('category')
+        queryset = super().get_queryset()
+        if category:
+            queryset = queryset.filter(category_id=category)
+        return queryset
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:

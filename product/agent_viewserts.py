@@ -12,12 +12,13 @@ class PropertyViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return Property.objects.filter(user=self.request.user)\
             .select_related('user','region', 'category')\
-    .prefetch_related('propertys',
-                      'propertys__image',
-                      'propertys__access_exit',
-                      'propertys__the_rule'
-                      )
-    
+            .prefetch_related('items',
+                              'items__image',
+                              'items__access_times',
+                              'items__rules',
+                              'items__comfortable'
+                              )
+
     def get_permissions(self):
 
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
