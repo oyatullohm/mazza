@@ -91,7 +91,7 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return PropertyItem.objects.filter(property__user=self.request.user)\
             .select_related('property', 'property__user')\
-            .prefetch_related('image','comfortable','access_exit','the_rule')
+            .prefetch_related('images','comfortable','rules','access_times')
 
     def get_permissions(self):
 
