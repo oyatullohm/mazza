@@ -23,7 +23,7 @@ class TheRuleSerializer(serializers.ModelSerializer):
 class ComfortableSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comfortable
-        fields = ['id', 'category', 'name', 'image']
+        fields = ['id',  'name', 'image']
 
 
 class PropertySerializer(serializers.ModelSerializer):
