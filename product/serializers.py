@@ -63,7 +63,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
        
 class PropertyItemSerializer(serializers.ModelSerializer):
-    property = PropertySerializer(read_only=True)
+    # property = PropertySerializer(read_only=True)
     images = ImagesSerializer(many=True, read_only=True)
     comfortable = ComfortableSerializer(many=True, read_only=True)
     rules = TheRuleSerializer(many=True, read_only=True)
