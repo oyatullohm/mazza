@@ -88,10 +88,6 @@ class PropertyViewSet(viewsets.ModelViewSet):
 class PropertyItemViewSet(viewsets.ModelViewSet):
     serializer_class = PropertyItemSerializer
 
-    def retrieve(self, request, *args, **kwargs):
-        property_item = PropertyItem.objects.get(id=kwargs['pk'])
-        serializer = PropertyItemSerializer(property_item)
-        return Response(serializer.data)
     
     def get_queryset(self):
         return PropertyItem.objects.filter(property__user=self.request.user)\
