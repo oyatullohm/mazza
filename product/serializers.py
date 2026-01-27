@@ -1,6 +1,6 @@
 from .models import AccessExitTime, Booking, Comentariya, CurrencyRate, PropertyItem, Region, The_rule, Comfortable, Property, Images, Category
 from rest_framework import serializers
-
+from main.serializers import UserSerializer
 
 class RegionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -112,6 +112,7 @@ class BookingSerializer(serializers.ModelSerializer):
         )
 
 class ComentariyaSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
     class Meta:
         model = Comentariya
         fields = ('id', 'user', 'property', 'text', 'created_at')
