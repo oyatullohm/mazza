@@ -84,3 +84,7 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
                 'access_times'
             )
         )
+
+    def retrieve(self, request, *args, **kwargs):
+        property_item = PropertyItem.objects.get(id=kwargs['pk'])
+        return Response(PropertyItemSerializer(property_item).data)
