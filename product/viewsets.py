@@ -59,20 +59,28 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
         return queryset
 
 
-class BookingPropertyItemViewSet(viewsets.ModelViewSet):
+class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
     serializer_class = PropertyItemSerializer
-    http_method_names = ['get']
     permission_classes = [AllowAny]
+    pagination_class = PropertyPagination 
 
     def get_queryset(self):
         property_id = self.request.query_params.get('property')
-        return PropertyItem.objects.filter(is_active=True, property_id=property_id)\
-            .select_related('property', 'property__region', 'property__category', 'property__user')\
+
+        if not property_id:
+            return PropertyItem.objects.none()  # 🔥 ENG TO‘G‘RISI
+
+        return (
+            PropertyItem.objects
+            .filter(
+                is_active=True,
+                property_id=property_id
+            )
+            .select_related('property')  # 🔴 minimal
             .prefetch_related(
                 'rules',
                 'images',
                 'comfortable',
                 'access_times'
-            )  
-
-    
+            )
+        )
