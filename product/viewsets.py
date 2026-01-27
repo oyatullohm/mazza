@@ -1,5 +1,5 @@
 from rest_framework.permissions import IsAuthenticated ,AllowAny
-from django.db.models import OuterRef, Subquery, DecimalField
+from django.db.models import OuterRef, Subquery, DecimalField, Q
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from django.db.models.functions import Coalesce
@@ -10,6 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import viewsets
 from rest_framework import status
+from datetime import datetime
 from decimal import Decimal
 from .serializers import *
 from .models import *
@@ -103,59 +104,147 @@ class BookingViewSet(ReadOnlyModelViewSet):
         )
 
 
+
     def create(self, request, *args, **kwargs):
         data = request.data
 
-        item = PropertyItem.objects.select_related().get(id=data.get('item'))
+        # 🔎 ITEM
+        try:
+            item = PropertyItem.objects.get(id=data.get('item'))
+        except PropertyItem.DoesNotExist:
+            return Response({'detail': 'Item not found'}, status=404)
 
+        # 📅 DATES
         date_access = parse_date(data.get('date_access'))
         date_exit = parse_date(data.get('date_exit'))
 
-        if not date_access or not date_exit or date_exit <= date_access:
+        if not date_access or not date_exit:
+            return Response({'detail': 'Dates required'}, status=400)
+
+        if date_exit < date_access:
             return Response(
-                {'detail': 'Date exit must be greater than date access'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'detail': 'date_exit cannot be before date_access'},
+                status=400
             )
 
-        # 1️⃣ Kunlar soni
-        days = (date_exit - date_access).days
+        access_time = None
+        base_price = Decimal('0')
 
-        # 2️⃣ Asosiy narx
-        base_price = item.price * Decimal(days)
+        # =========================
+        # 🕒 SOATLIK BRON
+        # =========================
+        if data.get('access_times'):
+            try:
+                access_time = AccessExitTime.objects.get(
+                    id=data.get('access_times')
+                )
+            except AccessExitTime.DoesNotExist:
+                return Response(
+                    {'detail': 'Access time not found'},
+                    status=404
+                )
 
-        # 3️⃣ Valyuta bo‘yicha hisoblash
+            start_dt = datetime.combine(date_access, access_time.access)
+            end_dt = datetime.combine(date_access, access_time.exit)
+
+            if end_dt <= start_dt:
+                return Response(
+                    {'detail': 'Exit time must be after access time'},
+                    status=400
+                )
+
+            # ⏱ SOATLAR
+            hours = Decimal(
+                (end_dt - start_dt).seconds
+            ) / Decimal('3600')
+
+            # ❗ kamida 3 soat
+            if hours < 3:
+                return Response(
+                    {'detail': 'Minimum booking time is 3 hours'},
+                    status=400
+                )
+
+            # 🚫 BANDLIKNI TEKSHIRISH (OVERLAP + PAID)
+            conflict_exists = Booking.objects.filter(
+                item=item,
+                date_access=date_access,
+                is_paid=True,
+                access_times__isnull=False,
+            ).filter(
+                Q(
+                    access_times__access__lt=access_time.exit,
+                    access_times__exit__gt=access_time.access,
+                )
+            ).exists()
+
+            if conflict_exists:
+                return Response(
+                    {'detail': 'This time slot is already booked'},
+                    status=400
+                )
+
+            base_price = item.price * hours
+
+        # =========================
+        # 📅 KUNLIK BRON
+        # =========================
+        else:
+            days = (date_exit - date_access).days + 1
+
+            # 🚫 AGAR SHU ORALIQDA PAID BRON BO‘LSA
+            conflict_exists = Booking.objects.filter(
+                item=item,
+                is_paid=True,
+                date_access__lte=date_exit,
+                date_exit__gte=date_access,
+            ).exists()
+
+            if conflict_exists:
+                return Response(
+                    {'detail': 'This item is already booked for these dates'},
+                    status=400
+                )
+
+            base_price = item.price * Decimal(days)
+
+        # =========================
+        # 💱 VALYUTA
+        # =========================
         if item.sum == 'USD':
             rate = CurrencyRate.objects.last()
             if not rate:
                 return Response(
-                    {'detail': 'Currency rate not found'},
-                    status=status.HTTP_400_BAD_REQUEST
+                    {'detail': 'Currency rate not set'},
+                    status=400
                 )
             base_price = base_price * rate.rate
 
-        # 4️⃣ 15% komissiya
+        # =========================
+        # ➕ 15% KOMISSIYA
+        # =========================
         total_payment = base_price + (base_price * Decimal('0.15'))
 
-        # 5️⃣ Booking yaratish
+        # =========================
+        # 💾 CREATE BOOKING
+        # =========================
         booking = Booking.objects.create(
             user=request.user,
             item=item,
-            access_times_id=data.get('access_times'),
+            access_times=access_time,
             date_access=date_access,
             date_exit=date_exit,
             phone_number=data.get('phone_number'),
-            payment=total_payment
+            payment=total_payment,
+            status='Kutilmoqda'
         )
 
         return Response(
-            {
-                'id': booking.id,
-                'payment': booking.payment,
-                'days': days,
-                'currency': 'UZS',
-            },
+            BookingSerializer(booking).data,
             status=status.HTTP_201_CREATED
         )
+
+        
 
     @action(detail=True, methods=['post'])
     def cancel(self, request, *args, **kwargs):
@@ -164,14 +253,78 @@ class BookingViewSet(ReadOnlyModelViewSet):
         booking.save()
         return Response(BookingSerializer(booking).data)
     
+
+
     @action(detail=True, methods=['post'])
     def payment(self, request, *args, **kwargs):
-        booking = Booking.objects.get(id=kwargs['pk'])  
+        try:
+            booking = Booking.objects.get(id=kwargs['pk'])
+        except Booking.DoesNotExist:
+            return Response({'detail': 'Booking not found'}, status=404)
+
+        # ❗ allaqachon to‘langan bo‘lsa
+        if booking.is_paid:
+            return Response(
+                {'detail': 'This booking is already paid'},
+                status=400
+            )
+
+        # =========================
+        # 🕒 SOATLIK BRON
+        # =========================
+        if booking.access_times:
+            conflict_exists = Booking.objects.filter(
+                item=booking.item,
+                date_access=booking.date_access,
+                is_paid=True,
+                access_times__isnull=False
+            ).exclude(id=booking.id).filter(
+                Q(
+                    access_times__access__lt=booking.access_times.exit,
+                    access_times__exit__gt=booking.access_times.access,
+                )
+            ).exists()
+
+            if conflict_exists:
+                return Response(
+                    {
+                        'detail': 'Another paid booking already exists for this time slot'
+                    },
+                    status=400
+                )
+
+        # =========================
+        # 📅 KUNLIK BRON
+        # =========================
+        else:
+            conflict_exists = Booking.objects.filter(
+                item=booking.item,
+                is_paid=True,
+                date_access__lte=booking.date_exit,
+                date_exit__gte=booking.date_access,
+            ).exclude(id=booking.id).exists()
+
+            if conflict_exists:
+                return Response(
+                    {
+                        'detail': 'Another paid booking already exists for these dates'
+                    },
+                    status=400
+                )
+
+        # =========================
+        # ✅ TO‘LOVNI TASDIQLASH
+        # =========================
         booking.is_paid = True
         booking.status = 'Tasdiqlangan'
-        booking.save()
-        return Response(BookingSerializer(booking).data)
-    
+        booking.save(update_fields=['is_paid', 'status'])
+
+        return Response(
+            BookingSerializer(booking).data,
+            status=status.HTTP_200_OK
+        )
+
+        
     def destroy(self, request, *args, **kwargs):
         booking = Booking.objects.get(id=kwargs['pk'])
         booking.is_active = False
