@@ -43,6 +43,7 @@ class PropertySerializer(serializers.ModelSerializer):
             'image', 'rating', 'min_price',
             'mini_sum'
         )
+    
 
 
 class ImagesSerializer(serializers.ModelSerializer):
