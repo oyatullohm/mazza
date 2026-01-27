@@ -1,4 +1,4 @@
-from .models import AccessExitTime, CurrencyRate, PropertyItem, Region, The_rule, Comfortable, Property, Images, Category
+from .models import AccessExitTime, Booking, Comentariya, CurrencyRate, PropertyItem, Region, The_rule, Comfortable, Property, Images, Category
 from rest_framework import serializers
 
 
@@ -89,3 +89,29 @@ class PropertyItemSerializer(serializers.ModelSerializer):
             'rules',
             'access_times',
         )
+
+class BookingSerializer(serializers.ModelSerializer):
+    item = PropertyItemSerializer(read_only=True)
+    access_times = AccessExitTimeSerializer(read_only=True)
+
+    class Meta:
+        model = Booking
+        fields = (
+            'id',
+            'user',
+            'item',
+            'access_times',
+            'status',
+            'is_paid',
+            'payment',
+            'date_access',
+            'date_exit',
+            'phone_number',
+            'created_at',
+            'is_active',
+        )
+
+class ComentariyaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comentariya
+        fields = ('id', 'user', 'property', 'text', 'created_at')

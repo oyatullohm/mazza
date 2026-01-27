@@ -107,11 +107,20 @@ class Booking(models.Model):
     ]
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, db_index=True)
     item = models.ForeignKey(PropertyItem, on_delete=models.CASCADE, db_index=True)
+    access_times = models.ForeignKey(AccessExitTime, on_delete=models.CASCADE, null=True, blank=True, db_index=True)
     status = models.CharField(max_length=255, choices=TYPE_CHOICES, default='Kutilmoqda', db_index=True)
     is_paid = models.BooleanField(default=False)
     payment = models.DecimalField(max_digits=15, decimal_places=2)
-    date_access = models.DateTimeField()
-    date_exit = models.DateTimeField()
+
+    date_access = models.DateField()
+    date_exit = models.DateField()
     phone_number = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+
+
+class Comentariya(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='comentariya')
+    property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name='comentariya')
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

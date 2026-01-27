@@ -15,6 +15,8 @@ router.register(r'properties', agent_viewserts.PropertyViewSet, basename='proper
 router.register(r'propertiesitems', agent_viewserts.PropertyItemViewSet, basename='propertyitem')
 router.register(r'booking_properties', viewsets.BookingPropertyViewSet, basename='bookingproperty')
 router.register(r'booking_properties_items', viewsets.BookingPropertyItemViewSet, basename='bookingpropertyitem')
+router.register(r'bookings', viewsets.BookingViewSet, basename='booking')
+router.register(r'comments', viewsets.ComentariyaViewSet, basename='comments')
 
 urlpatterns = [
 
