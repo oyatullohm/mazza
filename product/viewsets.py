@@ -65,7 +65,8 @@ class BookingPropertyItemViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        return PropertyItem.objects.filter(is_active=True)\
+        property_id = self.request.query_params.get('property')
+        return PropertyItem.objects.filter(is_active=True, property_id=property_id)\
             .select_related('property', 'property__region', 'property__category', 'property__user')\
             .prefetch_related(
                 'rules',
@@ -73,10 +74,5 @@ class BookingPropertyItemViewSet(viewsets.ModelViewSet):
                 'comfortable',
                 'access_times'
             )  
-    def list(self, request, *args, **kwargs):
-        property_id = request.query_params.get('property')
-        if property_id:
-            queryset = self.get_queryset().filter(property_id=property_id)
-        return Response(PropertyItemSerializer(queryset, many= True).data, status=200)
-    
+
     
