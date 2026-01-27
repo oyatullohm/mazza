@@ -15,7 +15,7 @@ class PropertyPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 20
 
-class PropertyViewSet(ReadOnlyModelViewSet):
+class BookingPropertyViewSet(ReadOnlyModelViewSet):
     serializer_class = PropertySerializer
     permission_classes = [AllowAny]
     pagination_class = PropertyPagination
@@ -62,16 +62,11 @@ class PropertyViewSet(ReadOnlyModelViewSet):
         return Response(PropertySerializer(queryset, many= True).data, status=200)
             
 
-class PropertyItemViewSet(viewsets.ModelViewSet):
+class BookingPropertyItemViewSet(viewsets.ModelViewSet):
     serializer_class = PropertyItemSerializer
     http_method_names = ['get']
     permission_classes = [AllowAny]
-    def list(self,request,pk):
-        queryset = self.get_queryset().filter(property_id=pk)
-        serializer = PropertyItemSerializer(queryset, many=True)
-        return Response(serializer.data)
 
-    
     def get_queryset(self):
         return PropertyItem.objects.filter(is_active=True)\
             .select_related('property', 'property__region', 'property__category', 'property__user')\
@@ -80,4 +75,9 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
                 'images',
                 'comfortable',
                 'access_times'
-            )   
+            )  
+        
+    def list(self,request,pk):
+        queryset = self.get_queryset().filter(property_id=pk)
+        serializer = PropertyItemSerializer(queryset, many=True)
+        return Response(serializer.data)

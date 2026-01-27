@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.urls import path
 from . import admin_viewsets
 from . import agent_viewserts
+from . import viewsets
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'regions', admin_viewsets.RegionViewSet, basename='region')
@@ -12,6 +13,8 @@ router.register(r'comfortables', admin_viewsets.ComfortableViewSet, basename='co
 router.register(r'dates', admin_viewsets.AccessExitTimeViewSet, basename='date')
 router.register(r'properties', agent_viewserts.PropertyViewSet, basename='property')
 router.register(r'propertiesitems', agent_viewserts.PropertyItemViewSet, basename='propertyitem')
+router.register(r'booking_properties', viewsets.BookingPropertyViewSet, basename='bookingproperty')
+router.register(r'booking_properties_items', viewsets.BookingPropertyItemViewSet, basename='bookingpropertyitem')
 
 urlpatterns = [
 
