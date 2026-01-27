@@ -12,9 +12,9 @@ router.register(r'the_rules', admin_viewsets.TheRuleViewSet, basename='the_rule'
 router.register(r'comfortables', admin_viewsets.ComfortableViewSet, basename='comfortable')
 router.register(r'dates', admin_viewsets.AccessExitTimeViewSet, basename='date')
 router.register(r'properties', agent_viewserts.PropertyViewSet, basename='property')
-router.register(r'properties-items', agent_viewserts.PropertyItemViewSet, basename='propertyitem')
-router.register(r'booking/properties', viewsets.BookingPropertyViewSet, basename='bookingproperty')
-router.register(r'booking/properties/items', viewsets.BookingPropertyItemViewSet, basename='bookingpropertyitem')
+router.register(r'propertiesitems', agent_viewserts.PropertyItemViewSet, basename='propertyitem')
+router.register(r'booking_properties', viewsets.BookingPropertyViewSet, basename='bookingproperty')
+router.register(r'booking_properties_items', viewsets.BookingPropertyItemViewSet, basename='bookingpropertyitem')
 
 urlpatterns = [
 
