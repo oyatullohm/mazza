@@ -28,7 +28,7 @@ class Category(models.Model):
 class Comfortable(models.Model):
     """ qulayliklar
     """
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='comfortable_items')
+    # category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='comfortable_items')
     name = models.CharField(max_length=55)
     image = models.ImageField(upload_to="comfortable/", null=True, blank=True )
     

@@ -164,7 +164,8 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
             property_item.the_rule.set(rules)
         property_item.save()
         return Response({"status": "success", "data": PropertyItemSerializer(property_item).data}, status=200)
-    @ action(detail=True, methods=['post'], url_path='add-images')
+    
+    @action(detail=True, methods=['post'], url_path='add-images')
     def add_images(self, request, pk=None):
         property_item = self.get_object()
         images = request.FILES.getlist('images')
@@ -177,16 +178,18 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
             return Response({"status": "success", "data": PropertyItemSerializer(property_item).data}, status=200)
         else:
             return Response({"status": "error", "message": "Maximum 5 images are allowed."}, status=400)
-    @ action(detail=True, methods=['post'], url_path='remove-image')
+    
+    @action(detail=True, methods=['post'], url_path='remove-image')
     def remove_image(self, request, pk=None):
         property_item = self.get_object()
         image_id = request.data.get('image_id')
         try:
             image = Images.objects.get(id=image_id)
-            property_item.image.remove(image)
+            property_item.images.remove(image)
             image.image.delete(save=False)
             image.delete()
             return Response({"status": "success", "data": PropertyItemSerializer(property_item).data}, status=200)
         except Images.DoesNotExist:
             return Response({"status": "error", "message": "Image not found."}, status=404) 
-        
+
+ 

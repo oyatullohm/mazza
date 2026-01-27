@@ -85,16 +85,8 @@ class TheRuleViewSet(viewsets.ModelViewSet):
 
 
 class ComfortableViewSet(viewsets.ModelViewSet):
-    queryset = Comfortable.objects.all().select_related('category')
+    queryset = Comfortable.objects.all()
     serializer_class = ComfortableSerializer
-
-    def get_queryset(self):
-        category = self.request.query_params.get('category')
-        queryset = super().get_queryset()
-        if category:
-            queryset = queryset.filter(category_id=category)
-        return queryset
-
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             permission_classes = [ IsStaff]
