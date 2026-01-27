@@ -27,6 +27,7 @@ class ComfortableSerializer(serializers.ModelSerializer):
 
 
 class PropertySerializer(serializers.ModelSerializer):
+    region = RegionSerializer(read_only=True)
     min_price = serializers.DecimalField(
         max_digits=15,
         decimal_places=2,

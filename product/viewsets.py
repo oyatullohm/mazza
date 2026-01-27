@@ -10,15 +10,10 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from rest_framework.pagination import PageNumberPagination
 
-class PropertyPagination(PageNumberPagination):
-    page_size = 2
-    page_size_query_param = 'page_size'
-    max_page_size = 5
 
-class BookingPropertyViewSet(ReadOnlyModelViewSet):
+class BookingPropertyViewSet(viewsets.ModelViewSet):
     serializer_class = PropertySerializer
     permission_classes = [AllowAny]
-    pagination_class = PropertyPagination
 
     def get_queryset(self):
         min_item = (
@@ -53,6 +48,7 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
         )
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        
         category = request.query_params.get('category', '')
         region = request.query_params.get('region', '')
         
@@ -60,6 +56,9 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
             queryset = self.get_queryset().filter(category_id=category)
         if region:
             queryset = self.get_queryset().filter(region_id=region)
+        page = PageNumberPagination()
+        page.page_size = 5
+        queryset = page.paginate_queryset(queryset, request)
         return Response(PropertySerializer(queryset, many= True).data, status=200)
             
 
