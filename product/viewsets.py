@@ -336,7 +336,7 @@ class ComentariyaViewSet(viewsets.ModelViewSet):
     # permission_classes = [IsAuthenticated]
     pagination_class = PropertyPagination 
     def get_queryset(self):
-        return super().get_queryset()\
+        return Comentariya.objects\
             .filter(property_id=self.request.query_params.get('property'))\
             .select_related('user','property')
     
