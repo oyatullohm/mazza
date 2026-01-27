@@ -58,6 +58,13 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
 
         return queryset
 
+    @action(methods=['get'],detail=True)
+    def comentary(self, request, pk):
+        property = Property.objects.get(id=pk)
+        comments = property.comentariya.all().select_related('user','property').order_by('-id')
+        return Response(ComentariyaSerializer(comments, many=True).data)
+
+
 
 class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
     serializer_class = PropertyItemSerializer
@@ -89,11 +96,6 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
         property_item = PropertyItem.objects.get(id=kwargs['pk'])
         return Response(PropertyItemSerializer(property_item).data)
     
-    @action(methods=['get'],detail=True)
-    def comentary(self, request, pk):
-        property = Property.objects.get(id=pk)
-        comments = property.comentariya.all().select_related('user','property').order_by('-id')
-        return Response(ComentariyaSerializer(comments, many=True).data)
 
 class BookingViewSet(ReadOnlyModelViewSet):
     serializer_class = BookingSerializer
