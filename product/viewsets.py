@@ -57,7 +57,7 @@ class BookingPropertyViewSet(viewsets.ModelViewSet):
         if region:
             queryset = self.get_queryset().filter(region_id=region)
         page = PageNumberPagination()
-        page.page_size = 5
+        page.page_size = 2
         queryset = page.paginate_queryset(queryset, request)
         return Response(PropertySerializer(queryset, many= True).data, status=200)
             
