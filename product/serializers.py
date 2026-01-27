@@ -33,7 +33,10 @@ class PropertySerializer(serializers.ModelSerializer):
         decimal_places=2,
         read_only=True
     )
-    mini_sum = serializers.CharField(read_only=True)
+    min_sum = serializers.CharField(
+        # source='min_sum',  # Modelda min_sum, lekin serializerga mini_sum nomi bilan chiqarish
+        read_only=True
+    )
 
     class Meta:
         model = Property
@@ -41,7 +44,7 @@ class PropertySerializer(serializers.ModelSerializer):
             'id', 'user', 'region', 'category',
             'name', 'info', 'lat', 'lon',
             'image', 'rating', 'min_price',
-            'mini_sum'
+            'min_sum'
         )
     
 

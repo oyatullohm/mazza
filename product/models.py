@@ -94,6 +94,7 @@ class PropertyItem(models.Model):
     sum = models.CharField(max_length=5, choices=SUMMA_TYPE)
     is_active = models.BooleanField(default=True)
     info = models.TextField()
+    
 
  
 class Booking(models.Model):
