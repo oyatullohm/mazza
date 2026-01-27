@@ -78,7 +78,7 @@ class PropertyItemSerializer(serializers.ModelSerializer):
             'sum',
             'is_active',
             'info',
-            'property',
+            # 'property',
             'images',
             'comfortable',
             'rules',
