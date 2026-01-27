@@ -52,20 +52,15 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
             )
         )
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-
         category = request.query_params.get('category')
         region = request.query_params.get('region')
-
+        
         if category:
-            queryset = queryset.filter(category_id=category)
-
+            queryset = self.get_queryset().filter(category_id=category)
         if region:
-            queryset = queryset.filter(region_id=region)
-
-        serializer = PropertySerializer(queryset, many=True)
-        return Response(serializer.data, status=200)
-
+            queryset = self.get_queryset().filter(region_id=region)
+        return Response(PropertySerializer(queryset, many= True).data, status=200)
+            
 
 class BookingPropertyItemViewSet(viewsets.ModelViewSet):
     serializer_class = PropertyItemSerializer
@@ -81,8 +76,10 @@ class BookingPropertyItemViewSet(viewsets.ModelViewSet):
                 'comfortable',
                 'access_times'
             )  
-        
-    def list(self,request,pk):
-        queryset = self.get_queryset().filter(property_id=pk)
-        serializer = PropertyItemSerializer(queryset, many=True)
-        return Response(serializer.data)
+    def list(self, request, *args, **kwargs):
+        property_id = request.query_params.get('property')
+        if property_id:
+            queryset = self.get_queryset().filter(property_id=property_id)
+        return Response(PropertyItemSerializer(queryset, many= True).data, status=200)
+    
+    
