@@ -59,7 +59,7 @@ class BookingPropertyViewSet(viewsets.ModelViewSet):
         page = PageNumberPagination()
         page.page_size = 2
         queryset = page.paginate_queryset(queryset, request)
-        return Response(PropertySerializer(queryset, many= True).data, status=200)
+        return page.get_paginated_response(PropertySerializer(queryset, many=True).data)
             
 
 class BookingPropertyItemViewSet(viewsets.ModelViewSet):
