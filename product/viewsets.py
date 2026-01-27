@@ -88,6 +88,12 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
     def retrieve(self, request, *args, **kwargs):
         property_item = PropertyItem.objects.get(id=kwargs['pk'])
         return Response(PropertyItemSerializer(property_item).data)
+    
+    @action(methods=['get'],detail=True)
+    def comentary(self, request, pk):
+        property = Property.objects.get(id=pk)
+        comments = property.comentariya.all().select_related('user','property').order_by('-id')
+        return Response(ComentariyaSerializer(comments, many=True).data)
 
 class BookingViewSet(ReadOnlyModelViewSet):
     serializer_class = BookingSerializer
@@ -331,10 +337,11 @@ class BookingViewSet(ReadOnlyModelViewSet):
         booking.save()
         return Response({'detail': 'Booking deleted successfully.'})
 
+
 class ComentariyaViewSet(viewsets.ModelViewSet):
     serializer_class = ComentariyaSerializer
     # permission_classes = [IsAuthenticated]
-    pagination_class = PropertyPagination 
+    # pagination_class = PropertyPagination 
     def get_queryset(self):
         return Comentariya.objects\
             .filter(property_id=self.request.query_params.get('property'))\
