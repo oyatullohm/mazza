@@ -109,7 +109,8 @@ class BookingViewSet(ReadOnlyModelViewSet):
             Booking.objects.filter(
                 user=user, is_active=True
             )
-            .select_related('user','item','access_times').prefetch_related('item__images','item__property' , 'item__access_times',
+            .select_related('user','item','access_times')\
+            .prefetch_related('item__images','item__property' ,'item__access_times',
                             'item__comfortable','item__rules')  # 🔴 minimal
         )
 
@@ -237,6 +238,7 @@ class BookingViewSet(ReadOnlyModelViewSet):
     def cancel(self, request, *args, **kwargs):
         booking = Booking.objects.get(id=kwargs['pk'])  
         booking.status = 'Rad etilgan'
+        booking.is_active = False
         booking.save()
         return Response(BookingSerializer(booking).data)
     
