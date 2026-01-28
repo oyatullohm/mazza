@@ -109,7 +109,8 @@ class BookingViewSet(ReadOnlyModelViewSet):
             Booking.objects.filter(
                 user=user, is_active=True
             )
-            .select_related('user','item','access_times')  # 🔴 minimal
+            .select_related('user','item','item__images','item__property' ,'item__access_times',
+                            'item__comfortable','item__rules')  # 🔴 minimal
         )
 
 
@@ -232,7 +233,6 @@ class BookingViewSet(ReadOnlyModelViewSet):
             status=status.HTTP_201_CREATED
         )
 
-
     @action(detail=True, methods=['post'])
     def cancel(self, request, *args, **kwargs):
         booking = Booking.objects.get(id=kwargs['pk'])  
@@ -240,8 +240,6 @@ class BookingViewSet(ReadOnlyModelViewSet):
         booking.save()
         return Response(BookingSerializer(booking).data)
     
-
-
     @action(detail=True, methods=['post'])
     def payment(self, request, *args, **kwargs):
         try:

@@ -90,8 +90,32 @@ class PropertyItemSerializer(serializers.ModelSerializer):
             'access_times',
         )
 
+class PropertyItemBronSerializer(serializers.ModelSerializer):
+    # property = PropertySerializer(read_only=True)
+    images = ImagesSerializer(many=True, read_only=True)
+    comfortable = ComfortableSerializer(many=True, read_only=True)
+    rules = TheRuleSerializer(many=True, read_only=True)
+    # access_times = AccessExitTimeSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = PropertyItem
+        fields = (
+            'id',
+            'name',
+            'price',
+            'sum',
+            'is_active',
+            'info',
+            # 'property',
+            'images',
+            'comfortable',
+            'rules',
+            # 'access_times',
+        )
+
+
 class BookingSerializer(serializers.ModelSerializer):
-    item = PropertyItemSerializer(read_only=True)
+    item = PropertyItemBronSerializer(read_only=True)
     access_times = AccessExitTimeSerializer(read_only=True)
 
     class Meta:
