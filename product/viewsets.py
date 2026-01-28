@@ -8,9 +8,10 @@ from django.db.models.functions import Coalesce
 from django.utils.dateparse import parse_date
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from datetime import datetime , timedelta
 from rest_framework import viewsets
+from django.utils import timezone
 from rest_framework import status
-from datetime import datetime
 from decimal import Decimal
 from .serializers import *
 from .models import *
@@ -112,7 +113,6 @@ class BookingViewSet(ReadOnlyModelViewSet):
         )
 
 
-
     def create(self, request, *args, **kwargs):
         data = request.data
 
@@ -136,89 +136,64 @@ class BookingViewSet(ReadOnlyModelViewSet):
             )
 
         access_time = None
-        base_price = Decimal('0')
 
         # =========================
-        # 🕒 SOATLIK BRON
+        # 🕒 VAQT ORALIG'I TEKSHIRISH
         # =========================
-        if data.get('access_times'):
+        access_time_id = data.get('access_times')
+        if access_time_id:
             try:
-                access_time = AccessExitTime.objects.get(
-                    id=data.get('access_times')
-                )
+                access_time = AccessExitTime.objects.get(id=access_time_id)
             except AccessExitTime.DoesNotExist:
                 return Response(
                     {'detail': 'Access time not found'},
                     status=404
                 )
 
-            start_dt = datetime.combine(date_access, access_time.access)
-            end_dt = datetime.combine(date_access, access_time.exit)
-
-            if end_dt <= start_dt:
-                return Response(
-                    {'detail': 'Exit time must be after access time'},
-                    status=400
-                )
-
-            # ⏱ SOATLAR
-            hours = Decimal(
-                (end_dt - start_dt).seconds
-            ) / Decimal('3600')
-
-            # ❗ kamida 3 soat
-            if hours < 3:
-                return Response(
-                    {'detail': 'Minimum booking time is 3 hours'},
-                    status=400
-                )
-
-            # 🚫 BANDLIKNI TEKSHIRISH (OVERLAP + PAID)
-            conflict_exists = Booking.objects.filter(
-                item=item,
-                date_access=date_access,
-                is_paid=True,
-                access_times__isnull=False,
-            ).filter(
-                Q(
-                    access_times__access__lt=access_time.exit,
-                    access_times__exit__gt=access_time.access,
-                )
-            ).exists()
-
-            if conflict_exists:
-                return Response(
-                    {'detail': 'This time slot is already booked'},
-                    status=400
-                )
-
-            base_price = item.price * hours
-
         # =========================
-        # 📅 KUNLIK BRON
+        # 🚫 BANDLIKNI TEKSHIRISH
         # =========================
+        conflict_query = Booking.objects.filter(
+            item=item,
+            date_access=date_access,
+            date_exit=date_exit
+        ).exclude(status='Rad etilgan')
+
+        if access_time:
+            conflict_query = conflict_query.filter(access_times=access_time)
         else:
-            days = (date_exit - date_access).days + 1
+            conflict_query = conflict_query.exclude(access_times__isnull=False)
 
-            # 🚫 AGAR SHU ORALIQDA PAID BRON BO‘LSA
-            conflict_exists = Booking.objects.filter(
-                item=item,
-                is_paid=True,
-                date_access__lte=date_exit,
-                date_exit__gte=date_access,
-            ).exists()
+        # 🔥 3 soat qoidasi
+        now = timezone.now()
+        three_hours_ago = now - timedelta(hours=3)
 
-            if conflict_exists:
+        active_conflicts = conflict_query.filter(
+            Q(is_paid=True) |
+            Q(created_at__gte=three_hours_ago, is_paid=False)
+        )
+
+        if active_conflicts.exists():
+            old_unpaid = conflict_query.filter(
+                is_paid=False,
+                created_at__lt=three_hours_ago
+            )
+            
+            if old_unpaid.exists() and not active_conflicts.filter(is_paid=True).exists():
+                old_unpaid.delete()
+            else:
                 return Response(
-                    {'detail': 'This item is already booked for these dates'},
+                    {'detail': 'Bu vaqt oraligʻi allaqachon band qilingan'},
                     status=400
                 )
 
-            base_price = item.price * Decimal(days)
+        # =========================
+        # 💰 TO'G'RI NARX HISOBLASH
+        # =========================
+        days = (date_exit - date_access).days + 1
+        base_price = item.price * Decimal(days)
 
-        # =========================
-        # 💱 VALYUTA
-        # =========================
+        # Valyuta bo'yicha konvertatsiya
         if item.sum == 'USD':
             rate = CurrencyRate.objects.last()
             if not rate:
@@ -226,15 +201,19 @@ class BookingViewSet(ReadOnlyModelViewSet):
                     {'detail': 'Currency rate not set'},
                     status=400
                 )
-            base_price = base_price * rate.rate
+            # 1. Dollar narxini so'mga o'tkazamiz
+            base_price_in_uzs = base_price * Decimal(str(rate.rate))
+            # 2. 15% depozit hisoblaymiz
+            total_payment = base_price_in_uzs * Decimal('0.15')
+        else:
+            # UZS bo'lsa, to'g'ridan-to'g'ri 15%
+            total_payment = base_price * Decimal('0.15')
+
+        # Yaxlitlash (ixtiyoriy)
+        total_payment = total_payment.quantize(Decimal('1'), rounding='ROUND_HALF_UP')
 
         # =========================
-        # ➕ 15% KOMISSIYA
-        # =========================
-        total_payment = base_price + (base_price * Decimal('0.15'))
-
-        # =========================
-        # 💾 CREATE BOOKING
+        # 🆕 BOOKING YARATISH
         # =========================
         booking = Booking.objects.create(
             user=request.user,
@@ -244,7 +223,8 @@ class BookingViewSet(ReadOnlyModelViewSet):
             date_exit=date_exit,
             phone_number=data.get('phone_number'),
             payment=total_payment,
-            status='Kutilmoqda'
+            status='Kutilmoqda',
+            is_paid=False
         )
 
         return Response(
@@ -252,7 +232,6 @@ class BookingViewSet(ReadOnlyModelViewSet):
             status=status.HTTP_201_CREATED
         )
 
-        
 
     @action(detail=True, methods=['post'])
     def cancel(self, request, *args, **kwargs):
@@ -278,15 +257,36 @@ class BookingViewSet(ReadOnlyModelViewSet):
             )
 
         # =========================
-        # 🕒 SOATLIK BRON
+        # 🔥 3 SOAT QOIDASI
+        # =========================
+        now = timezone.now()
+        three_hours_ago = now - timedelta(hours=3)
+        
+        if booking.created_at < three_hours_ago and not booking.is_paid:
+            # 3 soat o'tib ketgan va to'lanmagan bookingni o'chirib yuboramiz
+            booking.delete()
+            return Response(
+                {'detail': 'Booking expired. Please create a new one.'},
+                status=400
+            )
+
+        # =========================
+        # 🕒 SOATLIK BRON (Vaqt oralig'i bilan)
         # =========================
         if booking.access_times:
+            # Bir xil kun va bir xil vaqt oralig'idagi PAID bookinglarni tekshiramiz
             conflict_exists = Booking.objects.filter(
                 item=booking.item,
                 date_access=booking.date_access,
+                date_exit=booking.date_exit,
                 is_paid=True,
                 access_times__isnull=False
             ).exclude(id=booking.id).filter(
+                Q(
+                    access_times__access=booking.access_times.access,
+                    access_times__exit=booking.access_times.exit,
+                ) |
+                # Vaqt oralig'lari ustma-ust tushsa
                 Q(
                     access_times__access__lt=booking.access_times.exit,
                     access_times__exit__gt=booking.access_times.access,
@@ -302,12 +302,15 @@ class BookingViewSet(ReadOnlyModelViewSet):
                 )
 
         # =========================
-        # 📅 KUNLIK BRON
+        # 📅 KUNLIK BRON (Butun kun)
         # =========================
         else:
+            # Kunlar ustma-ust tushishini tekshiramiz
             conflict_exists = Booking.objects.filter(
                 item=booking.item,
                 is_paid=True,
+                access_times__isnull=True,  # Faqat kunlik bronlarni
+                # Kunlar ustma-ust tushsa
                 date_access__lte=booking.date_exit,
                 date_exit__gte=booking.date_access,
             ).exclude(id=booking.id).exists()
@@ -321,7 +324,33 @@ class BookingViewSet(ReadOnlyModelViewSet):
                 )
 
         # =========================
-        # ✅ TO‘LOVNI TASDIQLASH
+        # 🚫 ESKI TO'LANMAGAN BOOKINGLARNI O'CHIRISH
+        # =========================
+        # Bir xil vaqt oraligi uchun eski to'lanmagan bookinglarni o'chiramiz
+        old_unpaid_query = Booking.objects.filter(
+            item=booking.item,
+            is_paid=False,
+            created_at__lt=three_hours_ago
+        )
+        
+        if booking.access_times:
+            old_unpaid_query = old_unpaid_query.filter(
+                date_access=booking.date_access,
+                date_exit=booking.date_exit,
+                access_times=booking.access_times
+            )
+        else:
+            old_unpaid_query = old_unpaid_query.filter(
+                date_access__lte=booking.date_exit,
+                date_exit__gte=booking.date_access,
+                access_times__isnull=True
+            )
+        
+        # Bir xil userning eski bookinglarini o'chirish
+        old_unpaid_query.exclude(id=booking.id).delete()
+
+        # =========================
+        # ✅ TO'LOVNI TASDIQLASH
         # =========================
         booking.is_paid = True
         booking.status = 'Tasdiqlangan'
@@ -331,7 +360,6 @@ class BookingViewSet(ReadOnlyModelViewSet):
             BookingSerializer(booking).data,
             status=status.HTTP_200_OK
         )
-
         
     def destroy(self, request, *args, **kwargs):
         booking = Booking.objects.get(id=kwargs['pk'])
