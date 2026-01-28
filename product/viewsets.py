@@ -109,7 +109,7 @@ class BookingViewSet(ReadOnlyModelViewSet):
             Booking.objects.filter(
                 user=user, is_active=True
             )
-            .select_related('user','item','item__images','item__property' ,'item__access_times',
+            .select_related('user','item','access_times','item__images','item__property' , 'item__access_times',
                             'item__comfortable','item__rules')  # 🔴 minimal
         )
 
