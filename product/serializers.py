@@ -93,8 +93,8 @@ class PropertyItemSerializer(serializers.ModelSerializer):
 class PropertyItemBronSerializer(serializers.ModelSerializer):
     # property = PropertySerializer(read_only=True)
     images = ImagesSerializer(many=True, read_only=True)
-    comfortable = ComfortableSerializer(many=True, read_only=True)
-    rules = TheRuleSerializer(many=True, read_only=True)
+    # comfortable = ComfortableSerializer(many=True, read_only=True)
+    # rules = TheRuleSerializer(many=True, read_only=True)
     # access_times = AccessExitTimeSerializer(many=True, read_only=True)
 
     class Meta:
@@ -106,10 +106,10 @@ class PropertyItemBronSerializer(serializers.ModelSerializer):
             'sum',
             'is_active',
             'info',
-            # 'property',
             'images',
-            'comfortable',
-            'rules',
+            # 'property',
+            # 'comfortable',
+            # 'rules',
             # 'access_times',
         )
 
