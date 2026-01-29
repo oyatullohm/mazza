@@ -1,5 +1,5 @@
+from django.db.models import OuterRef, Subquery, DecimalField, Q, Count
 from rest_framework.permissions import IsAuthenticated ,AllowAny
-from django.db.models import OuterRef, Subquery, DecimalField, Q
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ReadOnlyModelViewSet
 from django.db.models.functions import Coalesce
@@ -14,6 +14,7 @@ from django.utils import timezone
 from rest_framework import status
 from decimal import Decimal
 from .serializers import *
+from datetime import date
 from .models import *
 
 class PropertyPagination(PageNumberPagination):
@@ -94,9 +95,110 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
         )
 
     def retrieve(self, request, *args, **kwargs):
-        property_item = PropertyItem.objects.get(id=kwargs['pk'])
-        return Response(PropertyItemSerializer(property_item).data)
-    
+        try:
+            property_item = PropertyItem.objects.get(id=kwargs['pk'])
+        except PropertyItem.DoesNotExist:
+            return Response({'detail': 'Property item not found'}, status=404)
+        
+        today = date.today()
+        start_date = today
+        end_date = today + timedelta(days=30)
+        
+        # 📊 Barcha bookinglarni bir queryda olish
+        bookings = Booking.objects.filter(
+            item=property_item,
+            date_access__lte=end_date,
+            date_exit__gte=start_date
+        ).filter(
+            Q(is_paid=True) | 
+            Q(is_paid=False, created_at__gte=timezone.now() - timedelta(hours=3))
+        ).select_related('access_times')
+        
+        # 🔄 Kun bo'yicha guruhlash
+        bookings_by_date = {}
+        for booking in bookings:
+            # Bookingning barcha kunlarini kiritamiz
+            current = max(booking.date_access, start_date)
+            last = min(booking.date_exit, end_date)
+            
+            while current <= last:
+                if current not in bookings_by_date:
+                    bookings_by_date[current] = []
+                
+                bookings_by_date[current].append(booking)
+                current += timedelta(days=1)
+        
+        # 📅 Kalendar ma'lumotlari
+        calendar_data = []
+        current_date = start_date
+        
+        # Barcha vaqt slotlari
+        all_time_slots = list(property_item.access_times.all())
+        all_slot_ids = set(slot.id for slot in all_time_slots)
+        
+        while current_date <= end_date:
+            day_bookings = bookings_by_date.get(current_date, [])
+            
+            # 🔍 HOLATNI ANIQLASH
+            status = "bo'sh"
+            
+            if day_bookings:
+                # TO'LIQ KUNLIK BRON TEKSHIRISH
+                has_full_day = False
+                has_hourly = False
+                hourly_slot_ids = set()
+                
+                for booking in day_bookings:
+                    # Kunlik bron (bir necha kun yoki access_times yo'q)
+                    if (booking.date_access != booking.date_exit or 
+                        booking.access_times is None):
+                        has_full_day = True
+                        break
+                    
+                    # Soatli bron (bir kun, access_times bor)
+                    if (booking.date_access == current_date == booking.date_exit and 
+                        booking.access_times):
+                        has_hourly = True
+                        hourly_slot_ids.add(booking.access_times.id)
+                
+                if has_full_day:
+                    status = "to'liq band"
+                elif has_hourly:
+                    if hourly_slot_ids == all_slot_ids:
+                        status = "to'liq band"
+                    else:
+                        status = "qisman band"
+            
+            # 📋 Vaqt slotlari holati
+            time_slots_info = []
+            if all_time_slots:
+                for slot in all_time_slots:
+                    is_booked = any(
+                        b for b in day_bookings 
+                        if b.access_times and 
+                        b.access_times.id == slot.id and
+                        b.date_access == current_date == b.date_exit
+                    )
+                    
+                    time_slots_info.append({
+                        'id': slot.id,
+                        'time': f"{slot.access.strftime('%H:%M')} - {slot.exit.strftime('%H:%M')}",
+                        'is_available': not is_booked
+                    })
+            
+            calendar_data.append({
+                'date': current_date.isoformat(),
+                'status': status,
+                'is_today': current_date == today,
+                'time_slots': time_slots_info
+            })
+            
+            current_date += timedelta(days=1)
+        
+        return Response({
+            'property': PropertyItemSerializer(property_item).data,
+            'calendar': calendar_data
+        })
 
 class BookingViewSet(ReadOnlyModelViewSet):
     serializer_class = BookingSerializer
