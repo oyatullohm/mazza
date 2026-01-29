@@ -93,8 +93,12 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
                 'access_times'
             )
         )
-
     def retrieve(self, request, *args, **kwargs):
+        property_item = PropertyItem.objects.get(id=kwargs['pk'])
+        return Response(PropertyItemSerializer(property_item).data)  
+    
+    @action(methods=['get'], detail=True)
+    def calendar(self, request, *args, **kwargs):
         try:
             property_item = PropertyItem.objects.get(id=kwargs['pk'])
         except PropertyItem.DoesNotExist:
@@ -196,7 +200,6 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
             current_date += timedelta(days=1)
         
         return Response({
-            'property': PropertyItemSerializer(property_item).data,
             'calendar': calendar_data
         })
 

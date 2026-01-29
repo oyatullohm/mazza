@@ -21,7 +21,7 @@ class CustomUser(AbstractUser):
 
 class ChatRoom(models.Model):
     property = models.ForeignKey(
-        'product.PropertyItem', on_delete=models.CASCADE, related_name="chat_rooms"
+        'product.Property', on_delete=models.CASCADE, related_name="chat_rooms"
     ,null=True, blank=True)
     user_1 = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name="chat_user1"
