@@ -81,14 +81,14 @@ def chat_list(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def message_create(request, message_id):
+def message_create(request, Chat_id):
     user = request.user
 
     try:
         chat_room = ChatRoom.objects.select_related(
             'user_1',
             'user_2'
-        ).get(id=message_id)
+        ).get(id=Chat_id)
     except ChatRoom.DoesNotExist:
         return Response({'error': 'Chat room not found'}, status=404)
 
@@ -151,10 +151,10 @@ def send_message_notification(message, chat_room, sender):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def message_list(request, message_id):
+def message_list(request, chat_id):
     user = request.user
     try:
-        chat_room = ChatRoom.objects.select_related('user_1', 'user_2').get(id=message_id)
+        chat_room = ChatRoom.objects.select_related('user_1', 'user_2').get(id=chat_id)
     except ChatRoom.DoesNotExist:
         return Response({'error': 'Chat room not found'}, status=status.HTTP_404_NOT_FOUND)
 
