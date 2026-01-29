@@ -193,7 +193,7 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
             calendar_data.append({
                 'date': current_date.isoformat(),
                 'status': status,
-                'is_today': current_date == today,
+                # 'is_today': current_date == today,
                 'time_slots': time_slots_info
             })
             
