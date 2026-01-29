@@ -1,5 +1,4 @@
-
-from product.serializers import PropertySerializer
+# from  product.serializers import PropertySerializer
 from rest_framework import serializers
 from .models import *
 
@@ -35,7 +34,7 @@ class MessageSerializer(serializers.ModelSerializer):
         return False
     
 class ChatRoomSerializer(serializers.ModelSerializer):
-    property = PropertySerializer(read_only=True)
+    # property = PropertySerializer(read_only=True)
     user = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
 
