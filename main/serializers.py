@@ -59,7 +59,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
    
         if request and hasattr(request, 'user'):
             user = request.user
-            return obj.messages.filter(sender__ne=user, flowed=False).count()
+            return obj.messages.filter(flowed=False).count()
         return 0
     
     def get_user(self, obj):
