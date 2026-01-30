@@ -25,7 +25,7 @@ class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)
     class Meta:
         model = Message
-        fields = ['id', 'i', 'sender', 'room', 'image', 'content', 'timestamp', ]
+        fields = ['id', 'i', 'sender', 'room',  'content', 'timestamp', ]
     
     def get_i(self, obj):
         request = self.context.get('request')
