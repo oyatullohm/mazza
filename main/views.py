@@ -101,7 +101,7 @@ def message_create(request, chat_id):
         # image=request.FILES.get('image')
     )
 
-    send_message_notification(message, chat_room, user)
+    # send_message_notification(message, chat_room, user)
 
     serializer = MessageSerializer(
         message,
