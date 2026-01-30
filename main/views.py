@@ -36,8 +36,7 @@ def chat_create(request):
     )
     chat_room.property_id=property
     chat_room.save()
-    
-    serializer = ChatRoomSerializer(chat_room)
+    serializer = ChatRoomSerializer(chat_room, context={'request': request})
     return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
