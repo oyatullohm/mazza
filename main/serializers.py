@@ -1,6 +1,7 @@
 # from  product.serializers import PropertySerializer
 from rest_framework import serializers
 from .models import *
+from django.db.models import Q
 
 class RegisterSerializer(serializers.Serializer):
     phone = serializers.CharField(required=False)
@@ -53,15 +54,18 @@ class ChatRoomSerializer(serializers.ModelSerializer):
             'unread_count'
         ]
 
+
     def get_unread_count(self, obj):
         """O'qilmagan xabarlar sonini qaytarish"""
         request = self.context.get('request')
-   
         if request and hasattr(request, 'user'):
             user = request.user
-            return obj.messages.filter(flowed=False).count()
+            return obj.messages.filter(
+                ~Q(sender=user),  # sender != user
+                flowed=False
+            ).count()
         return 0
-    
+        
     def get_user(self, obj):
         request = self.context.get('request')
         if request.user.id == obj.user_1.id:
