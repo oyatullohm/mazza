@@ -80,7 +80,7 @@ def chat_list(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def message_create(request, Chat_id):
+def message_create(request, chat_id):
     user = request.user
 
     try:
@@ -98,7 +98,7 @@ def message_create(request, Chat_id):
         sender=user,
         room=chat_room,
         content=request.data.get('content', ''),
-        image=request.FILES.get('image')
+        # image=request.FILES.get('image')
     )
 
     send_message_notification(message, chat_room, user)
