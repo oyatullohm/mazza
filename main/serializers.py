@@ -54,7 +54,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
 
     def get_user(self, obj):
         request = self.context.get('request')
-        if request.user.id == obj.user_1_id:
+        if request.user.id == obj.user_1.id:
             return UserSerializer(obj.user_2).data
         return UserSerializer(obj.user_1).data
 
