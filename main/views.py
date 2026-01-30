@@ -161,6 +161,10 @@ def message_list(request, chat_id):
         return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
 
     messages = Message.objects.filter(room=chat_room).select_related('sender','room').order_by('-id')
+    unread_messages = messages.filter(sender=user, flowed=False)
+
+    unread_messages.update(flowed=True)
+
     serializer = MessageSerializer(messages, many=True,context={'request': request})
     return Response(serializer.data)
 
