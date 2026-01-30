@@ -4,7 +4,8 @@ from rest_framework.decorators import api_view , permission_classes
 from rest_framework.response import Response
 from .models import CustomUser , Message , ChatRoom
 from .serializers import *
-from django.db.models import Q, Prefetch , OuterRef ,Subquery
+from django.db.models import OuterRef, Subquery, Count, Q, Case, When, F, IntegerField
+
 from rest_framework import status
 from .fcm_service import FCMService
 from django.db.models import Count
@@ -42,29 +43,41 @@ def chat_create(request):
     return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
 
 
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def chat_list(request):
     user = request.user
 
-    # 🔍 Oxirgi xabarni olish
-    last_message_qs = (
-        Message.objects
-        .filter(room=OuterRef('pk'))
-        .order_by('-timestamp')
-    )
-
-    # 🔢 O'qilmagan xabarlar sonini hisoblash
-    unread_count_qs = (
+    # 1. O'qilmagan xabarlar soni (boshqa userning xabarlari)
+    unread_count_subquery = (
         Message.objects
         .filter(
             room=OuterRef('pk'),
-            flowed=False
+            flowed=False,
+            # Boshqa userning xabarlarini olamiz
+            sender=Case(
+                When(
+                    room__user_1=user, 
+                    then=F('room__user_2')
+                ),
+                When(
+                    room__user_2=user, 
+                    then=F('room__user_1')
+                ),
+                output_field=IntegerField()
+            )
         )
-        .exclude(sender=user)  # Faqat boshqa userlarning xabarlari
         .values('room')
         .annotate(count=Count('id'))
-        .values('count')
+        .values('count')[:1]
+    )
+
+    # 2. Oxirgi xabar ma'lumotlari
+    last_message_subquery = (
+        Message.objects
+        .filter(room=OuterRef('pk'))
+        .order_by('-timestamp')
     )
 
     chats = (
@@ -72,20 +85,21 @@ def chat_list(request):
         .filter(Q(user_1=user) | Q(user_2=user))
         .select_related('property', 'user_1', 'user_2', 'owner')
         .annotate(
+            # O'qilmagan xabarlar soni
+            unread_count=Coalesce(
+                Subquery(unread_count_subquery),
+                0,
+                output_field=IntegerField()
+            ),
+            # Oxirgi xabar ma'lumotlari
             last_message_content=Subquery(
-                last_message_qs.values('content')[:1]
+                last_message_subquery.values('content')[:1]
             ),
             last_message_time=Subquery(
-                last_message_qs.values('timestamp')[:1]
+                last_message_subquery.values('timestamp')[:1]
             ),
             last_message_sender_id=Subquery(
-                last_message_qs.values('sender_id')[:1]
-            ),
-            # ✅ O'qilmagan xabarlar soni
-            unread_count=Coalesce( 
-                Subquery(unread_count_qs[:1]),
-                0,  # Agar yo'q bo'lsa, 0 qaytar
-                output_field=models.IntegerField()
+                last_message_subquery.values('sender_id')[:1]
             )
         )
         .order_by('-last_message_time')
@@ -94,11 +108,10 @@ def chat_list(request):
     serializer = ChatRoomSerializer(
         chats,
         many=True,
-        context={'request': request}   
+        context={'request': request}
     )
+    
     return Response(serializer.data)
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def message_create(request, chat_id):
