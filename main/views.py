@@ -87,7 +87,7 @@ def message_create(request, chat_id):
         chat_room = ChatRoom.objects.select_related(
             'user_1',
             'user_2'
-        ).get(id=Chat_id)
+        ).get(id=chat_id)
     except ChatRoom.DoesNotExist:
         return Response({'error': 'Chat room not found'}, status=404)
 
