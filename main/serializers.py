@@ -59,10 +59,11 @@ class ChatRoomSerializer(serializers.ModelSerializer):
         return UserSerializer(obj.user_1).data
 
     def get_last_message(self, obj):
-        if not obj.last_message_time:
+        if not obj.messages.exists():
             return None
+        last_message = obj.messages.last()
         return {
-            'content': obj.last_message_content,
-            'timestamp': obj.last_message_time,
-            'sender_id': obj.last_message_sender_id,
+            'content': last_message.content,
+            'timestamp': last_message.timestamp,
+            'sender_id': last_message.sender.id,
         }
