@@ -55,7 +55,7 @@ def chat_list(request):
     chats = (
         ChatRoom.objects
         .filter(Q(user_1=user) | Q(user_2=user))
-        .select_related('product', 'user_1', 'user_2', 'owner')
+        .select_related('property', 'user_1', 'user_2', 'owner')
         .annotate(
             last_message_content=Subquery(
                 last_message_qs.values('content')[:1]
