@@ -25,7 +25,7 @@ class MessageSerializer(serializers.ModelSerializer):
     sender = UserSerializer(read_only=True)
     class Meta:
         model = Message
-        fields = ['id', 'i', 'sender', 'room',  'content', 'timestamp', ]
+        fields = ['id', 'i', 'sender', 'room',  'content', 'timestamp','flowed']
     
     def get_i(self, obj):
         request = self.context.get('request')
@@ -37,7 +37,7 @@ class ChatRoomSerializer(serializers.ModelSerializer):
     # property = PropertySerializer(read_only=True)
     user = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
-
+    unread_count = serializers.SerializerMethodField()
     class Meta:
         model = ChatRoom
         fields = [
@@ -49,9 +49,19 @@ class ChatRoomSerializer(serializers.ModelSerializer):
             'owner',
             'last_message',
             'room_name',
-            'created_at'
+            'created_at',
+            'unread_count'
         ]
 
+    def get_unread_count(self, obj):
+        """O'qilmagan xabarlar sonini qaytarish"""
+        request = self.context.get('request')
+   
+        if request and hasattr(request, 'user'):
+            user = request.user
+            return obj.messages.filter(sender__ne=user, flowed=False).count()
+        return 0
+    
     def get_user(self, obj):
         request = self.context.get('request')
         if request.user.id == obj.user_1.id:

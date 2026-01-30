@@ -57,7 +57,6 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
 
         if region:
             queryset = queryset.filter(region_id=region)
-
         return queryset
 
     @action(methods=['get'],detail=True)
@@ -65,7 +64,6 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
         property = Property.objects.get(id=pk)
         comments = property.comentariya.all().select_related('user','property').order_by('-id')
         return Response(ComentariyaSerializer(comments, many=True).data)
-
 
 
 class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
