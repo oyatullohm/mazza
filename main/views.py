@@ -4,7 +4,10 @@ from rest_framework.decorators import api_view , permission_classes
 from rest_framework.response import Response
 from .models import CustomUser , Message , ChatRoom
 from .serializers import *
-from django.db.models import Q, Prefetch , OuterRef ,Subquery
+from django.db.models import (
+    Q, OuterRef, Subquery, Count, IntegerField, BooleanField
+)
+from django.db.models.functions import Coalesce
 from rest_framework import status
 from .fcm_service import FCMService
 
@@ -57,6 +60,7 @@ def chat_list(request):
         .filter(Q(user_1=user) | Q(user_2=user))
         .select_related('property', 'user_1', 'user_2', 'owner')
         .annotate(
+            # 🔹 oxirgi xabar
             last_message_content=Subquery(
                 last_message_qs.values('content')[:1]
             ),
@@ -65,6 +69,14 @@ def chat_list(request):
             ),
             last_message_sender_id=Subquery(
                 last_message_qs.values('sender_id')[:1]
+            ),
+
+            # 🔹 unread count (eng muhim joy)
+            unread_count_db=Count(
+                'messages',
+                filter=Q(
+                    messages__flowed=False
+                ) & ~Q(messages__sender=user),
             )
         )
         .order_by('-last_message_time')
