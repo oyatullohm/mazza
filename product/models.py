@@ -68,6 +68,7 @@ class Property(models.Model):
     info = models.TextField()
     lat = models.FloatField()
     lon = models.FloatField()
+    is_active = models.BooleanField(default=True)
 
 class PropertyItem(models.Model):
     SUMMA_TYPE = (

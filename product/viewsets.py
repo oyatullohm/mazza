@@ -34,7 +34,7 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
         )
 
         queryset = (
-            Property.objects
+            Property.objects.filter(is_active=True)
             .annotate(
                 min_price=Coalesce(
                     Subquery(min_item.values('price')[:1]),

@@ -44,7 +44,7 @@ class PropertySerializer(serializers.ModelSerializer):
             'id', 'user', 'region', 'category',
             'name', 'info', 'lat', 'lon',
             'image', 'rating', 'min_price',
-            'min_sum'
+            'min_sum','is_active'
         )
     
 

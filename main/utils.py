@@ -7,7 +7,7 @@ def random_number():
         code = random.randint(10000, 99999)
         if not cache.get(f"verify:{code}"):
             return code
-VERIFY_TTL = 120  # 2 minut
+VERIFY_TTL = 240  # 2 minut
 
 def set_verify_code(code, email):
     cache.set(
