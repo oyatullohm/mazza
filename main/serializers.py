@@ -61,10 +61,23 @@ class ChatRoomSerializer(serializers.ModelSerializer):
         return UserSerializer(obj.user_1).data
 
     def get_last_message(self, obj):
-        if not obj.last_message_time:
+        # Agar annotate orqali kelgan bo‘lsa
+        if hasattr(obj, 'last_message_time'):
+            if not obj.last_message_time:
+                return None
+            return {
+                'content': obj.last_message_content,
+                'timestamp': obj.last_message_time,
+                'sender_id': obj.last_message_sender_id,
+            }
+
+        # Agar annotate YO‘Q bo‘lsa (masalan chat_create)
+        last_message = obj.messages.order_by('-timestamp').first()
+        if not last_message:
             return None
+
         return {
-            'content': obj.last_message_content,
-            'timestamp': obj.last_message_time,
-            'sender_id': obj.last_message_sender_id,
+            'content': last_message.content,
+            'timestamp': last_message.timestamp,
+            'sender_id': last_message.sender_id,
         }
