@@ -430,7 +430,11 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
         })
     @action(detail=True, methods=['post'])
     def cancel(self, request, *args, **kwargs):
-        booking = self.get_queryset().get(id=kwargs['pk'])  
+        try:
+            booking = self.get_queryset().get(id=kwargs['pk'])  
+        except Booking.DoesNotExist:
+            return Response({'success': False, 'data': 'Booking not found'}, status=404)
+
         if booking.user == request.user and not booking.is_paid:
             booking.status = 'Rad etilgan'
             booking.is_active = False
