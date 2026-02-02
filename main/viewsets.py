@@ -86,6 +86,8 @@ class UserViewsets(viewsets.ViewSet):
             confirmation_code= code,
             is_confirmation= False
         )
+        if user.role == 'agent':
+            Balans.objects.get_or_create(user=user)
 
         
         user.confirmation_code = code
@@ -289,3 +291,36 @@ class UserViewsets(viewsets.ViewSet):
         user.image.delete(save=False)  # Rasmni o'chirish
         user.delete()
         return Response({'message': 'Foydalanuvchi o\'chirildi'}, status=204)
+
+class BalansViewset(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    serializer_class = BalansSerializer
+    queryset = Balans.objects.all() 
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def get_queryset(self):
+        return Balans.objects.filter(user=self.request.user)
+
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        amount = request.data.get('balans')
+
+        if amount is not None:
+            try:
+                amount = float(amount)
+            except ValueError:
+                return Response({'error': 'Invalid amount'}, status=400)
+
+            instance.balans = F('balans') + amount
+            instance.save()
+            instance.refresh_from_db()
+
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        else:
+            return Response({'error': 'Amount is required'}, status=400)

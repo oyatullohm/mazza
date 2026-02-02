@@ -17,7 +17,15 @@ class CustomUser(AbstractUser):
     is_confirmation = models.BooleanField(default=False)
     confirmation_code = models.CharField(max_length=5, null=True, blank=True)
     firebase_token = models.CharField(max_length=500, null=True, blank=True)
-    # USERNAME_FIELD = 'username'
+
+
+class Balans(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="balans")
+    balans = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.balans}"
+
 
 class ChatRoom(models.Model):
     property = models.ForeignKey(

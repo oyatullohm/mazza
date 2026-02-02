@@ -1,9 +1,7 @@
-from django.db.models import OuterRef, Subquery, DecimalField, Q, Count
+from django.db.models import OuterRef, Subquery, DecimalField, Q, Count, F
 from rest_framework.permissions import IsAuthenticated ,AllowAny
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.viewsets import ReadOnlyModelViewSet
-from django.db.models.functions import Coalesce
-from rest_framework.permissions import AllowAny
 from django.db.models.functions import Coalesce
 from django.utils.dateparse import parse_date
 from rest_framework.decorators import action
@@ -11,7 +9,9 @@ from rest_framework.response import Response
 from datetime import datetime , timedelta
 from rest_framework import viewsets
 from django.utils import timezone
+from django.db import transaction
 from rest_framework import status
+from main.models import Balans
 from decimal import Decimal
 from .serializers import *
 from datetime import date
@@ -450,7 +450,7 @@ class BookingViewSet(ReadOnlyModelViewSet):
             )
         
         # Bir xil userning eski bookinglarini o'chirish
-        old_unpaid_query.exclude(id=booking.id).delete()
+        # old_unpaid_query.exclude(id=booking.id).delete()
 
         # =========================
         # ✅ TO'LOVNI TASDIQLASH
@@ -458,7 +458,14 @@ class BookingViewSet(ReadOnlyModelViewSet):
         booking.is_paid = True
         booking.status = 'Tasdiqlangan'
         booking.save(update_fields=['is_paid', 'status'])
+        with transaction.atomic():
+            balans, created = Balans.objects.select_for_update().get_or_create(
+                user=booking.item.property.user,
+                defaults={'balans': 0}
+            )
 
+            balans.balans = F('balans') + booking.payment
+            balans.save(update_fields=['balans'])
         return Response(
             BookingSerializer(booking).data,
             status=status.HTTP_200_OK

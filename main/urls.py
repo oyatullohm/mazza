@@ -2,12 +2,14 @@ from django.contrib import admin
 from django.urls import path
 from .views import *
 from .viewsets import (
-    UserViewsets
+    UserViewsets,
+    BalansViewset,
 )
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register('users',UserViewsets,basename='users')
+router.register('balans',BalansViewset,basename='balans')
 
 urlpatterns = [
    

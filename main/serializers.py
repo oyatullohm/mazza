@@ -81,3 +81,8 @@ class ChatRoomSerializer(serializers.ModelSerializer):
             'timestamp': last_message.timestamp,
             'sender_id': last_message.sender_id,
         }
+class BalansSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = Balans
+        fields = ('id', 'user', 'balans')
