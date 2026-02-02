@@ -422,7 +422,7 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(methods=['get'], detail=False)
     def today(self, request):
-        bookings = self.get_queryset().filter(date_access__date=date.today())
+        bookings = self.get_queryset().filter(date_access=date.today())
         return Response({
             'booking': BookingSerializer(bookings, many=True).data,
             'count': bookings.count()
