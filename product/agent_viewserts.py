@@ -408,7 +408,7 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
     def list(self, request):
-        queriset = self.get_queryset().filter(date_access__date__gte=date.today())
+        queriset = self.get_queryset().filter(date_access__gte=date.today())
         return Response(BookingSerializer(queriset, many=True).data)
 
     @action(methods=['get'], detail=False)
