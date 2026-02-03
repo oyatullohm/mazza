@@ -453,8 +453,24 @@ class AccessExitTimeViewSet(viewsets.ModelViewSet):
     serializer_class = AccessExitTimeSerializer
 
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ['create']:
             permission_classes = [ IsAgent]
         else:
             permission_classes = []
         return [permission() for permission in permission_classes]
+    
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        access = data.get('access')
+        exit = data.get('exit')
+        access_exit_time, created = AccessExitTime.objects.get_or_create(
+            access=access,
+            exit=exit
+        )
+        access_exit_time.intermediate_time = f"oraliq vaqt: {access_exit_time.exit - access_exit_time.access}"
+        access_exit_time.save()
+
+        if created:
+            return Response({"status": "success", "data": AccessExitTimeSerializer(access_exit_time).data}, status=201)
+        else:
+            return Response({"status": "success", "data": AccessExitTimeSerializer(access_exit_time).data}, status=200)
