@@ -1,3 +1,4 @@
+from rest_framework.pagination import PageNumberPagination
 from product.viewsets import PropertyPagination
 from rest_framework.permissions import IsAuthenticated 
 from rest_framework.response import Response
@@ -408,13 +409,21 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
     def list(self, request):
-        queriset = self.get_queryset().filter(date_access__gte=date.today())
-        return Response(BookingSerializer(queriset, many=True).data)
+        page = PageNumberPagination()
+        page.page_size = 20
+        queryset = self.get_queryset().filter(date_access__gte=date.today())
+        paginated_queryset = page.paginate_queryset(queryset, request)
+        serializer = BookingSerializer(paginated_queryset, many=True)
+        return page.get_paginated_response(serializer.data)
 
     @action(methods=['get'], detail=False)
     def arhive(self, request):
-        queriset = self.get_queryset().filter(date_access__lt=date.today())
-        return Response(BookingSerializer(queriset, many=True).data)
+        page = PageNumberPagination()
+        page.page_size = 20
+        queryset = self.get_queryset().filter(date_access__lt=date.today())
+        paginated_queryset = page.paginate_queryset(queryset, request)
+        serializer = BookingSerializer(paginated_queryset, many=True)
+        return page.get_paginated_response(serializer.data)
     
     def get_queryset(self):
         user = self.request.user
