@@ -440,7 +440,7 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
             booking.is_active = False
             booking.save()
             return Response(BookingSerializer(booking).data)
-        elif not booking.is_paid:
+        elif booking.item.property.user == request.user and not booking.is_paid:
             booking.status = 'Rad etilgan'
             booking.is_active = False
             booking.save()
@@ -448,3 +448,13 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
         return Response({'success':False,
                          'data':'no authorized'})
             
+class AccessExitTimeViewSet(viewsets.ModelViewSet):
+    queryset = AccessExitTime.objects.all()
+    serializer_class = AccessExitTimeSerializer
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [ IsAgent]
+        else:
+            permission_classes = []
+        return [permission() for permission in permission_classes]

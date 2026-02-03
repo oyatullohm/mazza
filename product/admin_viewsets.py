@@ -95,13 +95,3 @@ class ComfortableViewSet(viewsets.ModelViewSet):
         return [permission() for permission in permission_classes]
 
 
-class AccessExitTimeViewSet(viewsets.ModelViewSet):
-    queryset = AccessExitTime.objects.all()
-    serializer_class = AccessExitTimeSerializer
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [ IsStaff]
-        else:
-            permission_classes = []
-        return [permission() for permission in permission_classes]
