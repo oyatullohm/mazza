@@ -1,15 +1,16 @@
 from rest_framework.pagination import PageNumberPagination
 from product.viewsets import PropertyPagination
 from rest_framework.permissions import IsAuthenticated 
+from datetime import timedelta , date, datetime
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.utils.dateparse import parse_date
-from datetime import timedelta , date
 from rest_framework import viewsets
 from django.utils import timezone 
 from .permissions import IsAgent
 from django.db.models import Q
 from decimal import Decimal
+
 from rest_framework import status
 from .serializers import *
 from .models import *
@@ -420,7 +421,7 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
     def arhive(self, request):
         page = PageNumberPagination()
         page.page_size = 20
-        queryset = self.get_queryset().filter(date_access__lt=date.today())
+        queryset = self.get_queryset().filter(date_access__lt=date.today()).order_by('date_access')
         paginated_queryset = page.paginate_queryset(queryset, request)
         serializer = BookingSerializer(paginated_queryset, many=True)
         return page.get_paginated_response(serializer.data)
@@ -456,7 +457,25 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(BookingSerializer(booking).data)
         return Response({'success':False,
                          'data':'no authorized'})
-            
+    
+    
+
+def calculate_duration(access_time, exit_time):
+    """
+    access_time, exit_time -> datetime.time
+    natija -> timedelta
+    """
+    start = datetime.combine(date.today(), access_time)
+    end = datetime.combine(date.today(), exit_time)
+
+    # agar chiqish vaqti kichik yoki teng bo‘lsa — ertasi kun
+    if end <= start:
+        end += timedelta(days=1)
+
+    return end - start
+    
+
+        
 class AccessExitTimeViewSet(viewsets.ModelViewSet):
     queryset = AccessExitTime.objects.all()
     serializer_class = AccessExitTimeSerializer
@@ -476,8 +495,16 @@ class AccessExitTimeViewSet(viewsets.ModelViewSet):
             access=access,
             exit=exit
         )
-        access_exit_time.intermediate_time = f"oraliq vaqt: {access_exit_time.exit - access_exit_time.access}"
-        access_exit_time.save()
+        delta = calculate_duration(
+            access_exit_time.access,
+            access_exit_time.exit
+        )
+
+        hours = delta.seconds // 3600
+        minutes = (delta.seconds % 3600) // 60
+
+        access_exit_time.intermediate_time = f"oraliq vaqt: {hours} soat {minutes} daqiqa"
+        access_exit_time.save(update_fields=['intermediate_time'])
 
         if created:
             return Response({"status": "success", "data": AccessExitTimeSerializer(access_exit_time).data}, status=201)
