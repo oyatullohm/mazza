@@ -207,7 +207,7 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=True)
     def calendar(self, request, *args, **kwargs):
         try:
-            property_item = PropertyItem.objects.get(id=kwargs['pk'])
+            property_item = self.get_queryset().get(id=kwargs['pk'])
         except PropertyItem.DoesNotExist:
             return Response({'detail': 'Property item not found'}, status=404)
         
@@ -438,6 +438,7 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
             'count': bookings.count()
             
         })
+    
     @action(detail=True, methods=['post'])
     def cancel(self, request, *args, **kwargs):
         try:
@@ -457,7 +458,6 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
             return Response(BookingSerializer(booking).data)
         return Response({'success':False,
                          'data':'no authorized'})
-    
     
 
 def calculate_duration(access_time, exit_time):
