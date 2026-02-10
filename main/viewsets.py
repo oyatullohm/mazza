@@ -29,6 +29,7 @@ class UserViewsets(viewsets.ViewSet):
     def email_login(self, request, pk=None):
         data = request.data
         email = data.get('email')
+        first_name = data.get('name')
         firebase_token = data.get('firebase_token')
         
         if not email:
@@ -41,7 +42,9 @@ class UserViewsets(viewsets.ViewSet):
             firebase_token=firebase_token,
          
         )
+        user.first_name = first_name
         user.firebase_token = firebase_token
+        user.save()
         refresh = RefreshToken.for_user(user)
 
         return Response({
@@ -51,7 +54,8 @@ class UserViewsets(viewsets.ViewSet):
                 'id': user.id,
                 'email': user.email,
                 'phone': user.phone,
-                'role': user.role,
+                'role': user.role, 
+                'first_name':user.first_name,
                 'is_confirmation': user.is_confirmation
             }
         }, status=200)
