@@ -36,7 +36,19 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         # 'rest_framework.authentication.SessionAuthentication',
-    ],   
+    ], 
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+      
+}
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Elonchi API',
+    'VERSION': '1.0.0',
+    # O'rnatilgan avtomatik aniqlash uchun JWT authentication klassini ko'rsating:
+    'AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication',),
+    # Tokenni har so'rovda qayta kiritmaslik uchun:
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,
+    },
 }
 
 from datetime import timedelta
