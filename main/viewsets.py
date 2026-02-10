@@ -34,8 +34,10 @@ class UserViewsets(viewsets.ViewSet):
         
         if not email:
             return Response({'error': ' email shart'}, status=400)
-        
-        user, created = CustomUser.objects.get_or_create(
+        try:
+            user = CustomUser.objects.get(username=email)
+        except:
+            user = CustomUser.objects.create_user(
             email=email,
             role='client',
             username=email,
@@ -175,6 +177,7 @@ class UserViewsets(viewsets.ViewSet):
             'user': {
                 'id': user.id,
                 'email': user.email,
+                'name':user.first_name,
                 'phone': user.phone,
                 'role': user.role,
                 'is_confirmation': user.is_confirmation
