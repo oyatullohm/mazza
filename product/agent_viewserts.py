@@ -18,6 +18,7 @@ from .models import *
 
 class PropertyViewSet(viewsets.ModelViewSet):
     serializer_class = PropertySerializer
+    
 
     def get_queryset(self):
         return Property.objects.filter(user=self.request.user)\
@@ -31,8 +32,8 @@ class PropertyViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
 
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [ IsAgent]
+        if self.action in ['get','create', 'update', 'partial_update', 'destroy']:
+            permission_classes = [  IsAgent]
         else:
             permission_classes = []
         return [permission() for permission in permission_classes]
