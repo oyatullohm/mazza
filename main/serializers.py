@@ -86,3 +86,9 @@ class BalansSerializer(serializers.ModelSerializer):
     class Meta:
         model = Balans
         fields = ('id', 'user', 'balans')
+    
+
+class BannerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Banner
+        fields = ['id','image']

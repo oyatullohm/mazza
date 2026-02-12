@@ -26,6 +26,10 @@ class Balans(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.balans}"
 
+class Banner(models.Model):
+    image = models.ImageField(upload_to="banners/")
+    def __str__(self):
+        return f"Banner {self.id}"
 
 class ChatRoom(models.Model):
     property = models.ForeignKey(

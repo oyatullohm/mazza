@@ -7,10 +7,12 @@ from django.db.models import F , Prefetch, Count, Q
 from django.contrib.auth import authenticate
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from product.permissions import IsStaff
 from rest_framework import viewsets
 from rest_framework import status
 from .serializers import *
 from .models import *
+
 from .utils import *
 import datetime
 import random
@@ -331,3 +333,20 @@ class BalansViewset(viewsets.ModelViewSet):
             return Response(serializer.data)
         else:
             return Response({'error': 'Amount is required'}, status=400)
+
+
+class BannerViewSet(viewsets.ModelViewSet):
+    queryset = Banner.objects.all()
+    serializer_class = BannerSerializer
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsStaff]
+        return [AllowAny]
+    def destroy(self, request, *args, **kwargs):
+        obj = self.get_object()
+
+        if obj.image:
+            obj.image.delete(save=False)  # faylni o‘chiradi
+
+        obj.delete()  # DB recordni o‘chiradi
+        return Response({'success': True})

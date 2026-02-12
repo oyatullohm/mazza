@@ -4,13 +4,14 @@ from .views import *
 from .viewsets import (
     UserViewsets,
     BalansViewset,
+    BannerViewSet
 )
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
 router.register('users',UserViewsets,basename='users')
 router.register('balans',BalansViewset,basename='balans')
-
+router.register(r'banners', BannerViewSet, basename='banners')
 urlpatterns = [
    
     path('chat/chat-create/',chat_create, name='chat_create'),
