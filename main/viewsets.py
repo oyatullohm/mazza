@@ -340,8 +340,8 @@ class BannerViewSet(viewsets.ModelViewSet):
     serializer_class = BannerSerializer
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsStaff]
-        return [AllowAny]
+            return [IsStaff()]
+        return [AllowAny()]
     def destroy(self, request, *args, **kwargs):
         obj = self.get_object()
 
