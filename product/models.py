@@ -69,6 +69,7 @@ class Property(models.Model):
     lat = models.FloatField()
     lon = models.FloatField()
     is_active = models.BooleanField(default=True)
+    is_banner = models.BooleanField(default=False)
 
 class PropertyItem(models.Model):
     SUMMA_TYPE = (

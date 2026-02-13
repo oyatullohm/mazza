@@ -12,7 +12,8 @@ from rest_framework import viewsets
 from rest_framework import status
 from .serializers import *
 from .models import *
-
+from product.models import Property
+from product.serializers import PropertySerializer
 from .utils import *
 import datetime
 import random
@@ -336,17 +337,10 @@ class BalansViewset(viewsets.ModelViewSet):
 
 
 class BannerViewSet(viewsets.ModelViewSet):
-    queryset = Banner.objects.all()
-    serializer_class = BannerSerializer
+    queryset = Property.objects.filter(is_banner=True)
+    serializer_class = PropertySerializer
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsStaff()]
         return [AllowAny()]
-    def destroy(self, request, *args, **kwargs):
-        obj = self.get_object()
 
-        if obj.image:
-            obj.image.delete(save=False)  # faylni o‘chiradi
-
-        obj.delete()  # DB recordni o‘chiradi
-        return Response({'success': True})
