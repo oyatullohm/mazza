@@ -70,6 +70,7 @@ class Property(models.Model):
     lon = models.FloatField()
     is_active = models.BooleanField(default=True)
     is_banner = models.BooleanField(default=False)
+    is_famous = models.BooleanField(default=False)
 
 class PropertyItem(models.Model):
     SUMMA_TYPE = (

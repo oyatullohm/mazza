@@ -59,6 +59,14 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
             queryset = queryset.filter(region_id=region)
         return queryset
 
+    @action(methods=['get'],detail=False)
+    def famous(self, request):
+        queryset = self.get_queryset().filter(is_famous=True)
+        category = self.request.query_params.get('category')
+        if category:
+            queryset = queryset.filter(category_id=category)
+        return Response(PropertySerializer(queryset, many=True).data)
+    
     @action(methods=['get'],detail=True)
     def comentary(self, request, pk):
         property = Property.objects.get(id=pk)
@@ -201,10 +209,12 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
             'calendar': calendar_data
         })
 
+
 class BookingViewSet(ReadOnlyModelViewSet):
     serializer_class = BookingSerializer
     permission_classes = [IsAuthenticated]
     pagination_class = PropertyPagination 
+
 
     def get_queryset(self):
         user = self.request.user
