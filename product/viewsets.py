@@ -62,7 +62,7 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
     @action(methods=['get'],detail=False)
     def famous(self, request):
         queryset = self.get_queryset().filter(is_famous=True)
-        category = self.request.query_params.get('category')
+        category = request.query_params.get('category')
         if category:
             queryset = queryset.filter(category_id=category)
         return Response(PropertySerializer(queryset, many=True).data)
