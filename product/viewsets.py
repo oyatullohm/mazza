@@ -106,32 +106,76 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
     
 
     def list(self, request):
+        
         queryset = self.get_queryset()
         property_id = request.query_params.get('property')
 
         comentary = Comentariya.objects.filter(property_id=property_id).count()
-        property = Property.objects.get(id=property_id)
-        user = property.user
+        min_item = (
+            PropertyItem.objects
+            .filter(property=OuterRef('pk'), is_active=True)
+            .order_by('price')
+        )
+        property_obj = (
+            Property.objects
+            .filter(id=property_id)
+            .annotate(
+                min_price=Coalesce(
+                    Subquery(min_item.values('price')[:1]),
+                    0,
+                    output_field=DecimalField(max_digits=15, decimal_places=2)
+                ),
+                min_sum=Subquery(min_item.values('sum')[:1])
+            )
+            .select_related('user', 'region', 'category')
+            .first()
+        )
+
+        user = property_obj.user
 
         return Response({
-            'property':PropertySerializer(property).data,
+            'property': PropertySerializer(property_obj).data,
             'user': UserSerializer(user).data,
             'comentary_count': comentary,
             'data': PropertyItemSerializer(queryset, many=True).data
         })
-        
+
+                
     def retrieve(self, request, *args, **kwargs):
-       
-        property_item = PropertyItem.objects.get(id=kwargs['pk'])
-        comentary = Comentariya.objects.filter(property_id=property_item.property.id).count()
-        user = property_item.property.user
-        property = property_item.property
+        item = PropertyItem.objects.select_related('property').get(id=kwargs['pk'])
+
+        comentary = Comentariya.objects.filter(property_id=item.property_id).count()
+
+        min_item = (
+            PropertyItem.objects
+            .filter(property=OuterRef('pk'), is_active=True)
+            .order_by('price')
+        )
+
+        property_obj = (
+            Property.objects
+            .filter(id=item.property_id)
+            .annotate(
+                min_price=Coalesce(
+                    Subquery(min_item.values('price')[:1]),
+                    0,
+                    output_field=DecimalField(max_digits=15, decimal_places=2)
+                ),
+                min_sum=Subquery(min_item.values('sum')[:1])
+            )
+            .select_related('user', 'region', 'category')
+            .first()
+        )
+
+        user = property_obj.user
+
         return Response({
-            'property':PropertySerializer(property).data,
+            'property': PropertySerializer(property_obj).data,
             'user': UserSerializer(user).data,
             'comentary_count': comentary,
-            'data': PropertyItemSerializer(property_item, many=False).data
+            'data': PropertyItemSerializer(item).data
         })
+
     
     @action(methods=['get'], detail=True)
     def calendar(self, request, *args, **kwargs):
