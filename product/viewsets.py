@@ -134,7 +134,7 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
         user = property_obj.user
 
         return Response({
-            'property': PropertySerializer(property_obj).data,
+            'property': PropertySerializer(property_obj, context={'request': request}).data,
             'user': UserSerializer(user).data,
             'comentary_count': comentary,
             'data': PropertyItemSerializer(queryset, many=True).data
@@ -170,7 +170,7 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
         user = property_obj.user
 
         return Response({
-            'property': PropertySerializer(property_obj).data,
+            'property': PropertySerializer(property_obj, context={'request': request}).data,
             'user': UserSerializer(user).data,
             'comentary_count': comentary,
             'data': PropertyItemSerializer(item).data
