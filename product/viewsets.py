@@ -99,6 +99,18 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
                 'access_times'
             )
         )
+    
+
+    def list(self, request):
+        queryset = self.get_queryset()
+        property_id = request.query_params.get('property')
+        comentary = Comentariya.objects.filter(property_id=property_id).count()
+        user = Property.objects.get(id=property_id).user
+        
+        return Response({'user':UserSerializer(user).data , "comentary_count":comentary},
+            PropertyItemSerializer(queryset, many=True).data,
+            )
+    
     def retrieve(self, request, *args, **kwargs):
         property_item = PropertyItem.objects.get(id=kwargs['pk'])
         return Response(PropertyItemSerializer(property_item).data)  
@@ -497,6 +509,7 @@ class ComentariyaViewSet(viewsets.ModelViewSet):
             .filter(property_id=self.request.query_params.get('property'))\
             .select_related('user','property')
     
+
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsAuthenticated()]
