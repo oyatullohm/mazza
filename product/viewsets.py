@@ -116,7 +116,14 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
         
     def retrieve(self, request, *args, **kwargs):
         property_item = PropertyItem.objects.get(id=kwargs['pk'])
-        return Response(PropertyItemSerializer(property_item).data)  
+        comentary = Comentariya.objects.filter(property_id=property_item.property.id).count()
+        user = property_item.property.user
+
+        return Response({
+            'user': UserSerializer(user).data,
+            'comentary_count': comentary,
+            'data': PropertyItemSerializer(property_item, many=False).data
+        })
     
     @action(methods=['get'], detail=True)
     def calendar(self, request, *args, **kwargs):
