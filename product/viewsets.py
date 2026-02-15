@@ -137,7 +137,7 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
             'property': PropertySerializer(property_obj, context={'request': request}).data,
             'user': UserSerializer(user).data,
             'comentary_count': comentary,
-            'data': PropertyItemSerializer(queryset, many=True).data
+            'data': self.get_serializer(queryset, many=True).data
         })
 
                 
@@ -173,7 +173,7 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
             'property': PropertySerializer(property_obj, context={'request': request}).data,
             'user': UserSerializer(user).data,
             'comentary_count': comentary,
-            'data': PropertyItemSerializer(item, context={'request': request}).data
+            'data': self.get_serializer(item).data
         })
 
     
