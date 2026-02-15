@@ -34,6 +34,7 @@ class UserViewsets(viewsets.ViewSet):
         email = data.get('email')
         first_name = data.get('name')
         firebase_token = data.get('firebase_token')
+        image = data.get('image')
         
         if not email:
             return Response({'error': ' email shart'}, status=400)
@@ -47,6 +48,8 @@ class UserViewsets(viewsets.ViewSet):
             firebase_token=firebase_token,
          
         )
+        if image:
+            user.image = image
         user.first_name = first_name
         user.firebase_token = firebase_token
         user.save()

@@ -28,6 +28,7 @@ class ComfortableSerializer(serializers.ModelSerializer):
 
 class PropertySerializer(serializers.ModelSerializer):
     region = RegionSerializer(read_only=True)
+    comfortable = ComfortableSerializer(many= True, read_only=True)
     min_price = serializers.DecimalField(
         max_digits=15,
         decimal_places=2,
@@ -41,7 +42,7 @@ class PropertySerializer(serializers.ModelSerializer):
     class Meta:
         model = Property
         fields = (
-            'id', 'user', 'region', 'category',
+            'id', 'user', 'day' , 'comfortable', 'region', 'category',
             'name', 'info', 'lat', 'lon',
             'image', 'rating', 'min_price',
             'min_sum','is_active'

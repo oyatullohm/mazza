@@ -63,8 +63,12 @@ class BookingPropertyViewSet(ReadOnlyModelViewSet):
     def famous(self, request):
         queryset = self.get_queryset().filter(is_famous=True)
         category = request.query_params.get('category')
+        region = request.query_params.get('region')
         if category:
             queryset = queryset.filter(category_id=category)
+        if region:
+            queryset = queryset.filter(region_id=region)
+            
         return Response(PropertySerializer(queryset, many=True).data)
     
     @action(methods=['get'],detail=True)
@@ -106,9 +110,11 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
         property_id = request.query_params.get('property')
 
         comentary = Comentariya.objects.filter(property_id=property_id).count()
-        user = Property.objects.get(id=property_id).user
+        property = Property.objects.get(id=property_id)
+        user = property.user
 
         return Response({
+            'property':PropertySerializer(property).data,
             'user': UserSerializer(user).data,
             'comentary_count': comentary,
             'data': PropertyItemSerializer(queryset, many=True).data

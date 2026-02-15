@@ -65,6 +65,10 @@ class Property(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, related_name='categories')
     image = models.ImageField(upload_to='property_images')
     rating = models.DecimalField(max_digits=2, decimal_places=1, default=0)
+    comfortable = models.ManyToManyField(
+        Comfortable, related_name='property'
+    )
+    day = models.CharField(max_length=55, default='day')
     info = models.TextField()
     lat = models.FloatField()
     lon = models.FloatField()
