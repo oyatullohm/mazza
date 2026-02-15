@@ -104,13 +104,16 @@ class BookingPropertyItemViewSet(ReadOnlyModelViewSet):
     def list(self, request):
         queryset = self.get_queryset()
         property_id = request.query_params.get('property')
+
         comentary = Comentariya.objects.filter(property_id=property_id).count()
         user = Property.objects.get(id=property_id).user
+
+        return Response({
+            'user': UserSerializer(user).data,
+            'comentary_count': comentary,
+            'data': PropertyItemSerializer(queryset, many=True).data
+        })
         
-        return Response({'user':UserSerializer(user).data , "comentary_count":comentary},
-            PropertyItemSerializer(queryset, many=True).data,
-            )
-    
     def retrieve(self, request, *args, **kwargs):
         property_item = PropertyItem.objects.get(id=kwargs['pk'])
         return Response(PropertyItemSerializer(property_item).data)  
