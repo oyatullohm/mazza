@@ -420,7 +420,7 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
             phone_number=data.get('phone_number'),
             payment=payment,
             status='Kutilmoqda',
-            is_paid=False
+            is_paid=True
         )
 
         return Response(
