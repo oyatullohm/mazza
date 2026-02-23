@@ -41,14 +41,15 @@ class PropertyViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         data = request.data
         user = request.user
-        name = data['name']
-        region = data['region']
-        category = data['category']
-        rating = data['rating']
-        info = data['info']
-        lat = data['lat']
-        lon = data['lon']
-        image = data['image']
+        name = data.get('name')
+        region = data.get('region')
+        category = data.get('category') 
+        rating = data.get('rating')
+        info = data.get('info')
+        lat = data.get('lat')
+        lon = data.get('lon')
+        image = data.get('image')
+        comfortable = data.get('comfortable')
         property = Property.objects.create(
             user=user,
             name=name,
@@ -60,6 +61,14 @@ class PropertyViewSet(viewsets.ModelViewSet):
             lon=lon,
             image=image
         )
+        if comfortable:
+            for id in comfortable:
+                try:
+                    comf_obj = Comfortable.objects.get(id=id)
+                    property.comfortable.add(comf_obj)
+                except Comfortable.DoesNotExist:
+                    continue
+            
         return Response({"status": "success", "data": PropertySerializer(property).data}, status=201)
      
     def update(self, request, *args, **kwargs):
@@ -73,6 +82,15 @@ class PropertyViewSet(viewsets.ModelViewSet):
         lon = data.get('lon')
         image = data.get('image')
         property = self.get_object()
+        comfortable = data.get('comfortable')
+        if comfortable is not None:
+            property.comfortable.clear()# bu holatda comfortable maydonini yangilash uchun avvalgi barcha comfortable larni o'chirib tashlaymiz va yangi comfortable larni qo'shamiz
+            for id in comfortable:
+                try:
+                    comf_obj = Comfortable.objects.get(id=id)
+                    property.comfortable.add(comf_obj)
+                except Comfortable.DoesNotExist:
+                    continue
         if name:
             property.name = name
         if region:
