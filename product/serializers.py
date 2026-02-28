@@ -71,25 +71,26 @@ class CategorySerializer(serializers.ModelSerializer):
 class PropertyItemSerializer(serializers.ModelSerializer):
     # property = PropertySerializer(read_only=True)
     images = ImagesSerializer(many=True, read_only=True)
-    comfortable = ComfortableSerializer(many=True, read_only=True)
+    comfortable = ComfortableSerializer(many=True, read_only=True, context={'request':self.context['request']})
     rules = TheRuleSerializer(many=True, read_only=True)
     access_times = AccessExitTimeSerializer(many=True, read_only=True)
 
     class Meta:
         model = PropertyItem
-        fields = (
-            'id',
-            'name',
-            'price',
-            'sum',
-            'is_active',
-            'info',
-            # 'property',
-            'images',
-            'comfortable',
-            'rules',
-            'access_times',
-        )
+        fields = "__all__"
+        # fields = (
+        #     'id',
+        #     'name',
+        #     'price',
+        #     'sum',
+        #     'is_active',
+        #     'info',
+        #     # 'property',
+        #     'images',
+        #     'comfortable',
+        #     'rules',
+        #     'access_times',
+        # )
 
 class PropertyItemBronSerializer(serializers.ModelSerializer):
     # property = PropertySerializer(read_only=True)
