@@ -25,9 +25,9 @@ class PropertyViewSet(viewsets.ModelViewSet):
             .select_related('user','region', 'category')\
             .prefetch_related('items',
                             #   'images__image',
-                              'items__access_times',
-                              'items__rules',
-                              'items__comfortable'
+                            #   'items__access_times',
+                            #   'items__rules',
+                            #   'items__comfortable'
                               )
 
     def get_permissions(self):
