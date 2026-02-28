@@ -24,7 +24,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
         return Property.objects.filter(user=self.request.user)\
             .select_related('user','region', 'category')\
             .prefetch_related('items',
-                              'items__image',
+                            #   'images__image',
                               'items__access_times',
                               'items__rules',
                               'items__comfortable'
@@ -61,7 +61,7 @@ class PropertyViewSet(viewsets.ModelViewSet):
             lon=lon,
             image=image
         )
-        if comfortable:
+        if comfortable and isinstance(comfortable, list):
             for id in comfortable:
                 try:
                     comf_obj = Comfortable.objects.get(id=id)
