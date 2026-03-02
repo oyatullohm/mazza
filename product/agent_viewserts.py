@@ -117,6 +117,30 @@ class PropertyViewSet(viewsets.ModelViewSet):
 class PropertyItemViewSet(viewsets.ModelViewSet):
     serializer_class = PropertyItemSerializer
 
+    @action(methods=['get'], detail=False, url_path='today-free-items')
+    def today_free_items(self, request, *args, **kwargs):
+        """
+        "bifin bosh vaqtlari bo'lgan itemlarni qaytaradi"
+        """
+        today  = request.query_params.get('date')
+        if today:
+            try:
+                today = parse_date(today)
+            except ValueError:
+                return Response({'detail': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
+        else:               
+            today = date.today()
+        free_items = self.get_queryset().filter(
+                booking__date_access__lte=today,
+                booking__date_exit__gte=today
+            ).exclude(booking__status='Rad etilgan').distinct()
+        serializer = self.get_serializer(free_items, many=True)
+        return Response({
+            'status': 'success',
+            'data': serializer.data,
+            'count': free_items.count()
+        })
+
     
     def get_queryset(self):
         return PropertyItem.objects.filter(property__user=self.request.user)\
