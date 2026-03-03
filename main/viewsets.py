@@ -324,7 +324,19 @@ class BalansViewset(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         amount = request.data.get('balans')
+        new_balans = request.data.get('new_balans')
+        if new_balans is not None:
+            try:
+                new_balans = float(new_balans)
+            except ValueError:
+                return Response({'error': 'Invalid new_balans'}, status=400)
 
+            instance.balans = new_balans
+            instance.save()
+            instance.refresh_from_db()
+
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
         if amount is not None:
             try:
                 amount = float(amount)
