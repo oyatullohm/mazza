@@ -308,7 +308,9 @@ class UserViewsets(viewsets.ViewSet):
 class BalansViewset(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     serializer_class = BalansSerializer
-    queryset = Balans.objects.all() 
+    
+    # queryset = Balans.objects.all() 
+    http_method_names = ['get','retrieve','update','put', 'patch']
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
