@@ -1,6 +1,7 @@
 from rest_framework.pagination import PageNumberPagination
 from product.viewsets import PropertyPagination
 from rest_framework.permissions import IsAuthenticated 
+from django.db.models import Exists, OuterRef, Q
 from datetime import timedelta , date, datetime
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -8,9 +9,7 @@ from django.utils.dateparse import parse_date
 from rest_framework import viewsets
 from django.utils import timezone 
 from .permissions import IsAgent
-from django.db.models import Q
 from decimal import Decimal
-
 from rest_framework import status
 from .serializers import *
 from .models import *
@@ -120,28 +119,46 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
     @action(methods=['get'], detail=False, url_path='today-free-items')
     def today_free_items(self, request, *args, **kwargs):
         """
-        "bifin bosh vaqtlari bo'lgan itemlarni qaytaradi"
+        Bugungi kunda bo‘sh bo‘lgan xonalar (faqat request.user ga tegishli propertylar)
         """
-        today  = request.query_params.get('date')
-        if today:
-            try:
-                today = parse_date(today)
-            except ValueError:
-                return Response({'detail': 'Invalid date format. Use YYYY-MM-DD.'}, status=400)
-        else:               
-            today = date.today()
-        free_items = self.get_queryset().filter(
-                booking__date_access__lte=today,
-                booking__date_exit__gte=today
-            ).exclude(booking__status='Rad etilgan').distinct()
-        serializer = self.get_serializer(free_items, many=True)
-        return Response({
-            'status': 'success',
-            'data': serializer.data,
-            'count': free_items.count()
-        })
 
-    
+        today = request.query_params.get('date')
+
+        if today:
+            today = parse_date(today)
+            if not today:
+                return Response(
+                    {'detail': 'Invalid date format. Use YYYY-MM-DD.'},
+                    status=400
+                )
+        else:
+            today = date.today()
+
+        busy_bookings = Booking.objects.filter(
+            item=OuterRef('pk'),
+            is_active=True,
+            status__in=['Kutilmoqda', 'Tasdiqlangan'],
+            date_access__lte=today,
+            date_exit__gte=today
+        )
+
+        free_items = self.get_queryset().annotate(
+            is_busy=Exists(busy_bookings)
+        ).filter(
+            is_active=True,
+            property__is_active=True,
+            property__user=request.user,   # 🔥 ENDI USER BO‘YICHA FILTER
+            is_busy=False
+        )
+
+        serializer = self.get_serializer(free_items, many=True)
+
+        return Response({
+        'status': 'success',
+        'count': free_items.count(),
+        'data': serializer.data
+        })
+        
     def get_queryset(self):
         return PropertyItem.objects.filter(property__user=self.request.user)\
             .select_related('property', 'property__user')\
