@@ -501,24 +501,36 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
     
     @action(detail=True, methods=['post'])
     def cancel(self, request, *args, **kwargs):
-        try:
-            booking = self.get_queryset().get(id=kwargs['pk'])  
-        except Booking.DoesNotExist:
-            return Response({'success': False, 'data': 'Booking not found'}, status=404)
 
-        if booking.user == request.user and not booking.is_paid:
-            booking.status = 'Rad etilgan'
-            booking.is_active = False
-            booking.save()
-            return Response(BookingSerializer(booking).data)
-        elif booking.item.property.user == request.user and not booking.is_paid:
-            booking.status = 'Rad etilgan'
-            booking.is_active = False
-            booking.save()
-            return Response(BookingSerializer(booking).data)
-        return Response({'success':False,
-                         'data':'no authorized'})
-    
+        booking = self.get_object()
+
+        # is_customer = booking.user == request.user
+        # is_property_owner = booking.item.property.user == request.user
+
+        # # ❌ Umuman aloqasi bo‘lmagan odam
+        # if not (is_customer or is_property_owner):
+        #     return Response(
+        #         {'success': False, 'data': 'Not authorized'},
+        #         status=403
+        #     )
+
+        # # 🔥 Agar property owner bo‘lsa va booking paid bo‘lsa → rad etilmaydi
+        # if is_property_owner and booking.is_paid:
+        #     return Response(
+        #         {'success': False, 'data': 'Owner cannot cancel paid booking'},
+        #         status=400
+        #     )
+
+        # ✅ Customer bo‘lsa paid bo‘lsa ham cancel qiladi
+        booking.status = 'Rad etilgan'
+        booking.is_active = False
+        booking.save(update_fields=['status', 'is_active'])
+
+        return Response({
+            'success': True,
+            'data': self.get_serializer(booking).data
+        })
+        
 
 def calculate_duration(access_time, exit_time):
     """
