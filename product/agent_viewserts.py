@@ -472,7 +472,7 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
     def list(self, request):
         page = PageNumberPagination()
         page.page_size = 20
-        queryset = self.get_queryset().filter(date_access__gte=date.today())
+        queryset = self.get_queryset().filter(date_access__gte=date.today(), is_active=True).order_by('date_access')
         paginated_queryset = page.paginate_queryset(queryset, request)
         serializer = BookingSerializer(paginated_queryset, many=True)
         return page.get_paginated_response(serializer.data)
@@ -481,7 +481,7 @@ class AgentBookingViewSet(viewsets.ReadOnlyModelViewSet):
     def arhive(self, request):
         page = PageNumberPagination()
         page.page_size = 20
-        queryset = self.get_queryset().filter(date_access__lt=date.today()).order_by('date_access')
+        queryset = Booking.objects.filter(item__property__user=request.user, date_access__lt=date.today()).order_by('date_access')
         paginated_queryset = page.paginate_queryset(queryset, request)
         serializer = BookingSerializer(paginated_queryset, many=True)
         return page.get_paginated_response(serializer.data)
