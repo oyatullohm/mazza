@@ -570,7 +570,14 @@ class ComentariyaViewSet(viewsets.ModelViewSet):
         return Comentariya.objects\
             .filter(property_id=self.request.query_params.get('property'))\
             .select_related('user','property')
-    
+
+    @action(methods=['get'],detail=False, url_path='my-comments')
+    def my_comments(self, request):
+        user = request.user
+        comments = Comentariya.objects\
+            .filter(user=user)\
+            .select_related('user','property')
+        return Response(ComentariyaSerializer(comments, many=True).data)
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
