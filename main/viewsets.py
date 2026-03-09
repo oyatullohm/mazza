@@ -199,7 +199,8 @@ class UserViewsets(viewsets.ViewSet):
             'phone': user.phone,
             'email': user.email,
             'role': user.role,
-            'is_confirmation': user.is_confirmation
+            'is_confirmation': user.is_confirmation,
+            'image': user.image.url if user.image else None
             # 'password': user.password
         },status=200)
     
