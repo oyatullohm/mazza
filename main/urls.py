@@ -20,6 +20,6 @@ urlpatterns = [
     path('chat/message-list/<int:chat_id>/',message_list, name='message_list'),
     path('chat/message-delete/<int:pk>/',message_delete, name='message_delete'),
     path('chat/chat-delete/<int:pk>/',chat_delete, name='chat_delete'),
-
+    path('translate/<int:pk>/',translate, name='translate'),
 ]
 urlpatterns += router.urls

@@ -1,3 +1,4 @@
+from email.mime import message
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import  AllowAny, IsAuthenticated 
 from rest_framework.decorators import api_view , permission_classes
@@ -7,10 +8,12 @@ from .serializers import *
 from django.db.models import (
     Q, OuterRef, Subquery, Count, IntegerField, BooleanField
 )
+from Admin.settings import DEEPL_KEY
 from django.db.models.functions import Coalesce
 from rest_framework import status
 from .fcm_service import FCMService
-
+from deepl.exceptions import DeepLException
+import deepl
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -218,3 +221,36 @@ def chat_delete(request, pk):
         message.delete()
     chat_room.delete()
     return Response({'success': 'Chat room deleted'}, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+def translate(request, pk=None):
+
+    text = request.data.get("text")
+    source_lang = request.data.get("source_lang", None)
+    target_lang = request.data.get("target_lang", "EN-US")
+
+    if not text:
+        return Response(
+            {"error": "text is required"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        translator = deepl.Translator(DEEPL_KEY)
+
+        result = translator.translate_text(
+            text,
+            source_lang=source_lang,
+            target_lang=target_lang
+        )
+
+        return Response({
+            "translated_text": result.text
+        })
+
+    except DeepLException as e:
+        return Response(
+            {"error": str(e)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
