@@ -18,8 +18,6 @@ from .utils import *
 import datetime
 import random
 
-
-
 class UserViewsets(viewsets.ViewSet):
     serializer_class = RegisterSerializer
     queryset = CustomUser.objects.all()
@@ -352,7 +350,6 @@ class BalansViewset(viewsets.ModelViewSet):
             return Response(serializer.data)
         else:
             return Response({'error': 'Amount is required'}, status=400)
-
 
 class BannerViewSet(viewsets.ModelViewSet):
     queryset = Property.objects.filter(is_banner=True)

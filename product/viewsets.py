@@ -12,6 +12,8 @@ from django.utils import timezone
 from django.db import transaction
 from rest_framework import status
 from main.models import Balans
+from Admin.fcm import send_push_notification
+        
 from decimal import Decimal
 from .serializers import *
 from datetime import date
@@ -415,7 +417,11 @@ class BookingViewSet(ReadOnlyModelViewSet):
             status='Kutilmoqda',
             is_paid=False
         )
-
+        send_push_notification(
+            item.property.user.firebase_token,
+            "New booking",
+            f"{item.property.name} uchun yangi booking qildi: {date_access} - {date_exit} {request.user.username} tomonidan"
+        )
         return Response(
             BookingSerializer(booking).data,
             status=status.HTTP_201_CREATED
@@ -427,6 +433,11 @@ class BookingViewSet(ReadOnlyModelViewSet):
         booking.status = 'Rad etilgan'
         booking.is_active = False
         booking.save()
+        send_push_notification(
+            booking.item.property.user.firebase_token,
+            "Booking cancelled",
+            f"{booking.item.property.name} uchun booking rad etildi: {booking.date_access} - {booking.date_exit} {booking.user.username} tomonidan"
+        )
         return Response(BookingSerializer(booking).data)
     
     @action(detail=True, methods=['post'])
@@ -542,6 +553,11 @@ class BookingViewSet(ReadOnlyModelViewSet):
         booking.is_paid = True
         booking.status = 'Tasdiqlangan'
         booking.save(update_fields=['is_paid', 'status'])
+        send_push_notification(
+            booking.item.property.user.firebase_token,
+            "Booking paid",
+            f"{booking.item.property.name} uchun booking to'landi: {booking.date_access} - {booking.date_exit} {booking.user.username} tomonidan"
+        )
         with transaction.atomic():
             balans, created = Balans.objects.select_for_update().get_or_create(
                 user=booking.item.property.user,

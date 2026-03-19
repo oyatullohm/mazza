@@ -58,7 +58,8 @@ set_database.py
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
-
+firebase/
+service_account.json
 # Unit test / coverage reports
 htmlcov/
 .tox/

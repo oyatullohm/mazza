@@ -15,6 +15,8 @@ from .fcm_service import FCMService
 from deepl.exceptions import DeepLException
 import deepl
 
+from Admin.fcm import send_push_notification, send_bulk_push_notification
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def chat_create(request):
@@ -116,52 +118,17 @@ def message_create(request, chat_id):
         # image=request.FILES.get('image')
     )
 
-    # send_message_notification(message, chat_room, user)
-
+    send_push_notification(
+        chat_room.user_2.firebase_token,
+        "New message",
+        message.content[25:] + "..." if len(message.content) > 25 else message.content
+    )
     serializer = MessageSerializer(
         message,
         context={'request': request}
     )
     return Response(serializer.data, status=201)
 
-
-def send_message_notification(message, chat_room, sender):
-    receiver = (
-        chat_room.user_2
-        if sender.id == chat_room.user_1_id
-        else chat_room.user_1
-    )
-
-    fcm_tokens = receiver.firebase_token
-
-    if not fcm_tokens:
-        return
-
-    notification_title = "Yangi xabar"
-
-    if message.content:
-        notification_body = (
-            message.content[:100] + "..."
-            if len(message.content) > 100
-            else message.content
-        )
-    else:
-        notification_body = "Yangi xabar"
-
-    data = {
-        'chat_room_id': str(chat_room.id),
-        'message_id': str(message.id),
-        'sender_id': str(sender.id),
-        'type': 'new_message'
-    }
-
-    for token in fcm_tokens:
-        FCMService.send_push_notification(
-            token.token,
-            notification_title,
-            notification_body,
-            data
-        )
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env.str('SECRET_KEY')
 DEEPL_KEY = env.str('DEEPL_KEY')
-
+HOME_URL = env.str('HOME_URL')
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
