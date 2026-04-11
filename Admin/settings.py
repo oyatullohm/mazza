@@ -29,7 +29,8 @@ INSTALLED_APPS = [
     'product',
     'rest_framework',
     'rest_framework_simplejwt',
-     'drf_spectacular',
+    'drf_spectacular',
+    'click_up',
     # 'channels',
 ]
 
@@ -138,6 +139,12 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"  # collectstatic shu yerga yig‘adi
 
+CLICK_SERVICE_ID = env.str('CLICK_SERVICE_ID')
+CLICK_MERCHANT_ID = env.str('CLICK_MERCHANT_ID')
+CLICK_SECRET_KEY = env.str('CLICK_SECRET_KEY')
+CLICK_ACCOUNT_MODEL = "product.models.Booking"
+CLICK_AMOUNT_FIELD = "payment"
+CLICK_COMMISSION_PERCENT = 0
 
 AUTH_USER_MODEL = "main.CustomUser"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

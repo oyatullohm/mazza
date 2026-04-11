@@ -3,6 +3,7 @@ from django.urls import path
 from . import admin_viewsets
 from . import agent_viewserts
 from . import viewsets
+# from .click import ClickWebhookAPIView
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'regions', admin_viewsets.RegionViewSet, basename='region')
@@ -19,6 +20,6 @@ router.register(r'bookings', viewsets.BookingViewSet, basename='booking')
 router.register(r'comments', viewsets.ComentariyaViewSet, basename='comments')
 router.register(r'agent_booking',agent_viewserts.AgentBookingViewSet, basename='agentbooking')
 urlpatterns = [
-
+    # path("payment/click/update/", ClickWebhookAPIView.as_view()),
 ]
 urlpatterns += router.urls

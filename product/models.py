@@ -117,7 +117,7 @@ class Booking(models.Model):
     access_times = models.ForeignKey(AccessExitTime, on_delete=models.CASCADE, null=True, blank=True, db_index=True)
     status = models.CharField(max_length=255, choices=TYPE_CHOICES, default='Kutilmoqda', db_index=True)
     is_paid = models.BooleanField(default=False)
-    payment = models.DecimalField(max_digits=15, decimal_places=2)
+    payment = models.DecimalField(max_digits=15, decimal_places=2)# bu to'lov miqdori 15 foizi
 
     date_access = models.DateField()
     date_exit = models.DateField()
