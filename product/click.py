@@ -67,6 +67,45 @@ def create_payment_link(request, booking_id):
 
 class ClickWebhookAPIView(ClickWebhook):
     def validate_fiscal_item(self, fiscal_item):
+        required_fields = ["Name", "SPIC", "PackageCode", "Price", "Count", "VAT"]
+
+        # 1. required fieldlar borligini tekshir
+        for field in required_fields:
+            if field not in fiscal_item:
+                return False
+
+        # 2. Name tekshir (bo‘sh emas)
+        if not fiscal_item["Name"] or not str(fiscal_item["Name"]).strip():
+            return False
+
+        # 3. SPIC tekshir (string va uzunligi)
+        if not isinstance(fiscal_item["SPIC"], str) or len(fiscal_item["SPIC"]) < 5:
+            return False
+
+        # 4. PackageCode tekshir
+        if not fiscal_item["PackageCode"] or not str(fiscal_item["PackageCode"]).strip():
+            return False
+
+        # 5. Price tekshir
+        try:
+            price = float(fiscal_item["Price"])
+            if price <= 0:
+                return False
+        except:
+            return False
+
+        # 6. Count tekshir
+        try:
+            count = int(fiscal_item["Count"])
+            if count <= 0:
+                return False
+        except:
+            return False
+
+        # 7. VAT tekshir (0 yoki 12)
+        if fiscal_item["VAT"] not in [0, 12]:
+            return False
+
         return True
 
     def get_fiscal_items_for_account(self, account):
@@ -77,7 +116,7 @@ class ClickWebhookAPIView(ClickWebhook):
                 {
                     "Name": f"Booking #{booking.id}",
                     "SPIC": "06102001001000000",  # vaqtincha shu qo'y
-                    "PackageCode": "123456",
+                    "PackageCode": f"booking_{booking.id}",
                     "Price": float(booking.payment),
                     "Count": 1,
                     "VAT": 0
