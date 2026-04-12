@@ -133,17 +133,17 @@ class UserViewsets(viewsets.ViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        if not user.check_password(password):
-            return Response(
-                {'error': 'Parol noto‘g‘ri'},
-                status=status.HTTP_401_UNAUTHORIZED
-            )
+        # if not user.check_password(password):
+        #     return Response(
+        #         {'error': 'Parol noto‘g‘ri'},
+        #         status=status.HTTP_401_UNAUTHORIZED
+        #     )
 
         code = random_number()
         user.confirmation_code = code
         user.firebase_token = firebase_token
         user.save()
-        if user.phone=='+998992511100' or user.phone=='+998992511111':
+        if user.phone == '+998992511100' or user.phone=='+998992511111':
             code = '12345'
         
         set_verify_code(code, email)
