@@ -9,10 +9,10 @@ def random_number():
             return code
 VERIFY_TTL = 240  # 2 minut
 
-def set_verify_code(code, email):
+def set_verify_code(code, phone):
     cache.set(
         f"verify:{code}",
-        {"email": email},
+        {"phone": phone},
         timeout=VERIFY_TTL
     )
 

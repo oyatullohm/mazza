@@ -10,8 +10,8 @@ class CustomUser(AbstractUser):
     )
 
     username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(null=True, blank=True, unique=True)
-    phone = models.CharField(max_length=13, null=True, blank=True, unique=True)
+    # email = models.EmailField(null=True, blank=True, unique=True)
+    phone = models.CharField(max_length=13, unique=True)
     image = models.ImageField(upload_to='user_images', null=True, blank=True)
     role = models.CharField(max_length=15, choices=USER_CHOISE, null=True, blank=True)
     is_confirmation = models.BooleanField(default=False)
