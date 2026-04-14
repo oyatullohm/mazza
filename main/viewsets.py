@@ -181,8 +181,8 @@ class UserViewsets(viewsets.ViewSet):
             'access': str(refresh.access_token),
             'user': {
                 'id': user.id,
-                'email': user.email,
-                'name':user.first_name,
+                # 'email': user.email,
+                # 'name':user.first_name,
                 'phone': user.phone,
                 'role': user.role,
                 'is_confirmation': user.is_confirmation
