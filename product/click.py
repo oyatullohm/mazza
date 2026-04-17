@@ -64,8 +64,12 @@ def create_payment_link(request, booking_id):
     return Response({
         "paylink": paylink
     })
-
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+@method_decorator(csrf_exempt, name='dispatch')
 class ClickWebhookAPIView(ClickWebhook):
+    def get(self, request, *args, **kwargs):
+        return Response({"status": "ok"})
     def validate_fiscal_item(self, fiscal_item):
         required_fields = ["Name", "SPIC", "PackageCode", "Price", "Count", "VAT"]
 

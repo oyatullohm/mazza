@@ -45,7 +45,7 @@ class PropertySerializer(serializers.ModelSerializer):
             'id', 'user', 'day' , 'comfortable', 'region', 'category',
             'name', 'info', 'lat', 'lon',
             'image', 'rating', 'min_price',
-            'min_sum','is_active'
+            'min_sum','is_active','is_items_null'
         )
     
 
@@ -109,6 +109,8 @@ class PropertyItemBronSerializer(serializers.ModelSerializer):
             'is_active',
             'info',
             'images',
+            'price_discount',
+            'is_discount',
             # 'property',
             # 'comfortable',
             # 'rules',

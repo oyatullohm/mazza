@@ -382,7 +382,11 @@ class BookingViewSet(ReadOnlyModelViewSet):
         # 💰 TO'G'RI NARX HISOBLASH
         # =========================
         days = (date_exit - date_access).days + 1
-        base_price = item.price * Decimal(days)
+        discount = item.is_discount
+        if discount and item.price_discount > 0:
+            base_price = item.price_discount * Decimal(days)
+        else:
+            base_price = item.price * Decimal(days)
 
         # Valyuta bo'yicha konvertatsiya
         if item.sum == 'USD':
@@ -415,7 +419,8 @@ class BookingViewSet(ReadOnlyModelViewSet):
             phone_number=data.get('phone_number'),
             payment=total_payment,
             status='Kutilmoqda',
-            is_paid=False
+            is_paid=False,
+            is_discount=discount
         )
         send_push_notification(
             item.property.user.firebase_token,

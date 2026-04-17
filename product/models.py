@@ -75,6 +75,7 @@ class Property(models.Model):
     is_active = models.BooleanField(default=True)
     is_banner = models.BooleanField(default=False)
     is_famous = models.BooleanField(default=False)
+    is_items_null = models.BooleanField(default=False)
 
 class PropertyItem(models.Model):
     SUMMA_TYPE = (
@@ -98,6 +99,8 @@ class PropertyItem(models.Model):
     )
     name = models.CharField(max_length=55)
     price = models.DecimalField(max_digits=15,decimal_places=2)
+    price_discount = models.DecimalField(max_digits=15,decimal_places=2)
+    is_discount = models.BooleanField(default=False)
     sum = models.CharField(max_length=5, choices=SUMMA_TYPE)
     is_active = models.BooleanField(default=True)
     info = models.TextField()
@@ -124,6 +127,7 @@ class Booking(models.Model):
     phone_number = models.CharField(max_length=20)
     created_at = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    is_discount = models.BooleanField(default=True)
 
 
 class Comentariya(models.Model):

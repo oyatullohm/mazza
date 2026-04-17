@@ -177,6 +177,8 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
         property = data.get('property')
         name = data.get('name')
         price = data.get('price')
+        price_discount = data.get('discount')
+        is_discount = data.get('is_discount')
         sum = data.get('sum')
         comfortable = data.get('comfortable')
         access_exit = data.get('access_exit')
@@ -188,7 +190,9 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
             name=name,
             price=price,
             info=info,
-            sum=sum
+            sum=sum,
+            price_discount=price_discount if price_discount else 0,
+            is_discount=is_discount if is_discount else False
         )
         if comfortable:
             for id in comfortable:
@@ -214,6 +218,8 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
         property_item = self.get_object()
         name = data.get('name')
         price = data.get('price')
+        price_discount = data.get('price_discount')
+        is_discount = data.get('is_discount')
         sum = data.get('sum')
         access_exit = data.get('access_exit')
         the_rule = data.get('the_rule')
@@ -222,6 +228,10 @@ class PropertyItemViewSet(viewsets.ModelViewSet):
             property_item.name = name
         if price:
             property_item.price = price
+        if price_discount is not None:
+            property_item.price_discount = price_discount
+        if is_discount is not None:
+            property_item.is_discount = is_discount
         if sum:
                property_item.sum = sum
         if info:
