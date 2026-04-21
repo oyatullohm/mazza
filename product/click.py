@@ -12,29 +12,28 @@ click_up = ClickUp(
     secret_key=settings.CLICK_SECRET_KEY   # 🔥 SHART
 )
 
-@api_view(['GET'])
+# @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
-def create_payment_link(request, booking_id):
-    try:
-        booking = Booking.objects.get(id=booking_id, user=request.user)
-        if booking.is_paid == True:
-            return Response({"error": "Already paid"}, status=400)
-        paylink = click_up.initializer.generate_pay_link(
-            id=booking.id,
-            amount=float(booking.payment),
-            return_url=f"https://mazzajoy.uz/api/payment-success/{booking.id}/"
-        )
+# def create_payment_link(request, booking_id):
+#     try:
+#         booking = Booking.objects.get(id=booking_id, user=request.user)
 
-        return Response({
-            "success": True,
-            "paylink": paylink
-        })
+#         paylink = click_up.initializer.generate_pay_link(
+#             id=booking.id,
+#             amount=float(booking.payment),
+#             return_url=f"https://mazzajoy.uz/api/payment-success/{booking.id}/"
+#         )
 
-    except Booking.DoesNotExist:
-        return Response({
-            "success": False,
-            "message": "Booking topilmadi"
-        }, status=404)
+#         return Response({
+#             "success": True,
+#             "paylink": paylink
+#         })
+
+#     except Booking.DoesNotExist:
+#         return Response({
+#             "success": False,
+#             "message": "Booking topilmadi"
+#         }, status=404)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -51,6 +50,25 @@ def booking_detail(request, pk):
     except Booking.DoesNotExist:
         return Response({"error": "Not found"}, status=404)
 
+@api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+def create_payment_link(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id)
+        if booking.is_paid == True:
+            return Response({"error": "Already paid"}, status=400)
+
+        paylink = click_up.initializer.generate_pay_link(
+            id=booking.id,
+            amount=float(booking.payment),
+            return_url=f"/api/payment-success/{booking.id}/"
+        )
+
+        return Response({
+            "paylink": paylink
+        })
+    except Booking.DoesNotExist:
+        return Response({"error": "Not found"}, status=404)
 
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
