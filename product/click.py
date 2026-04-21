@@ -13,7 +13,7 @@ click_up = ClickUp(
 )
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def create_payment_link(request, booking_id):
     try:
         booking = Booking.objects.get(id=booking_id, user=request.user)
