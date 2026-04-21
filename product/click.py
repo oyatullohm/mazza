@@ -53,17 +53,23 @@ def booking_detail(request, pk):
 @api_view(['GET'])
 # @permission_classes([IsAuthenticated])
 def create_payment_link(request, booking_id):
-    booking = Booking.objects.get(id=booking_id)
+    try:
+        booking = Booking.objects.get(id=booking_id)
+        if booking.payment == True:
+            return Response({"error": "Already paid"}, status=400)
 
-    paylink = click_up.initializer.generate_pay_link(
-        id=booking.id,
-        amount=float(booking.payment),
-        return_url=f"/api/payment-success/{booking.id}/"
-    )
+        paylink = click_up.initializer.generate_pay_link(
+            id=booking.id,
+            amount=float(booking.payment),
+            return_url=f"/api/payment-success/{booking.id}/"
+        )
 
-    return Response({
-        "paylink": paylink
-    })
+        return Response({
+            "paylink": paylink
+        })
+    except Booking.DoesNotExist:
+        return Response({"error": "Not found"}, status=404)
+
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 @method_decorator(csrf_exempt, name='dispatch')
