@@ -13,6 +13,8 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SECRET_KEY = env.str('SECRET_KEY')
 DEEPL_KEY = env.str('DEEPL_KEY')
 HOME_URL = env.str('HOME_URL')
+ESKIZ_EMAIL = env.str('ESKIZ_EMAIL')
+ESKIZ_PASSWORD = env.str('ESKIZ_PASSWORD')
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']

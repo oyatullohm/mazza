@@ -78,3 +78,10 @@ class Message(models.Model):
     flowed = models.BooleanField(default=False)
     def __str__(self):
         return f"Message from {self.sender} in {self.room}"
+
+class EskizToken(models.Model):
+    token = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.token

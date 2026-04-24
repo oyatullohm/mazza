@@ -17,6 +17,63 @@ from product.serializers import PropertySerializer
 from .utils import *
 import datetime
 import random
+import requests
+from datetime import timedelta
+from django.utils import timezone
+from Admin.settings import ESKIZ_EMAIL, ESKIZ_PASSWORD
+
+def get_eskiz_token():
+
+    token  = EskizToken.objects.last()
+    if token and timezone.now() - token.created_at < timedelta(hours=24):
+        return token.token
+        
+
+    url = "https://notify.eskiz.uz/api/auth/login"
+    payload = {
+        "email": ESKIZ_EMAIL,
+        "password": ESKIZ_PASSWORD
+    }
+
+    response = requests.post(url, data=payload)
+
+    if response.status_code == 200:
+        token = response.json().get("data", {}).get("token")
+        data = response.json()
+
+    if "data" in data and "token" in data["data"]:
+        new_token = data["data"]["token"]
+        EskizToken.objects.all().delete()  # eski tokenlarni o‘chirish
+        EskizToken.objects.create(token=new_token)  # yangisini saqlash
+        return new_token
+    else:
+        raise Exception(f"Eskiz token olishda xatolik: {data}")
+
+
+def send_sms(phone_number, code):
+    """Eskiz orqali SMS yuborish"""
+    token = get_eskiz_token()
+    if not token:
+        return {"error": "Eskiz API tokenini olishda xatolik!"}
+
+    url = "https://notify.eskiz.uz/api/message/sms/send"
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    phone_number = phone_number.replace("+", "").replace(" ", "").strip()
+    if not phone_number.startswith("998") or len(phone_number) != 12:
+        return {"error": "Telefon raqami noto‘g‘ri formatda!"}
+    payload = {
+    "mobile_phone": phone_number,
+    "message": f"Kodni hech kimga bermang! Mazzajoy mobil ilovasiga kirish uchun tasdiqlash kodi: {code}",
+    "from": "4546",
+    "callback_url": ""
+    }
+
+    response = requests.post(url, headers=headers, data=payload)
+    # print("Eskizdan javob:", response.json())
+    return response.json()
+
 
 class UserViewsets(viewsets.ViewSet):
     serializer_class = RegisterSerializer
@@ -52,11 +109,16 @@ class UserViewsets(viewsets.ViewSet):
         
         
         set_verify_code(code, user.phone)
-
+        try:
+            result = send_sms(user.phone, code)
+        except:
+            result = None
+        # print("SMS yuborish natijasi:", result)
         return Response({
             'success': True,
             'message': 'Tasdiqlash kodi yuborildi',
-            'code': code
+            # 'code': code
+            'result':result
         }, status=status.HTTP_200_OK)
 
     
